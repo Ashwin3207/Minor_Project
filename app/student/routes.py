@@ -115,7 +115,9 @@ def jobs():
     return render_template('student/jobs.html',
                            job_list=job_list,
                            pagination=pagination,
-                           profile=profile)
+                           profile=profile,
+                            now=datetime.utcnow()  
+)
 
 
 @bp.route('/apply/<int:job_id>')
@@ -159,6 +161,8 @@ def apply(job_id):
     return redirect(url_for('student.applications'))
 
 
+from datetime import datetime
+
 @bp.route('/applications')
 @student_required
 def applications():
@@ -169,7 +173,11 @@ def applications():
                             .order_by(Application.applied_at.desc())\
                             .paginate(page=page, per_page=10, error_out=False)
 
-    return render_template('', applications=apps)
+    return render_template(
+        'student/application.html',
+        applications=apps,
+        now=datetime.utcnow()  
+    )
 
 
 @bp.route('/resume')
@@ -183,4 +191,5 @@ def resume():
         flash('Please complete your profile to view resume.', 'warning')
         return redirect(url_for('student.profile'))
 
-    return render_template('student/resume.html', user=user, profile=profile)
+    return render_template('student/resume.html', user=user, profile=profile, now=datetime.utcnow()  
+)
