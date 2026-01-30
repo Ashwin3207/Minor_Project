@@ -66,6 +66,45 @@ class Job(db.Model):
         return f'<Job {self.company_name} - {self.ctc}>'
 
 
+class Opportunity(db.Model):
+    __tablename__ = 'opportunities'
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    type = db.Column(db.String(50), nullable=False)  # e.g. Job, Internship, Session, Hackathon, Bootcamp, Seminar
+    organizer = db.Column(db.String(150))
+    company_name = db.Column(db.String(150))
+    description = db.Column(db.Text)
+    requirements = db.Column(db.Text)  # JSON string or newline-separated list
+    date = db.Column(db.DateTime)
+    mode = db.Column(db.String(50))
+    # Job/Internship specific fields
+    ctc = db.Column(db.String(50))  # e.g. "12 LPA", "500/month"
+    min_cgpa = db.Column(db.Float)  # Minimum CGPA required
+    allowed_branches = db.Column(db.Text)  # comma-separated
+    deadline = db.Column(db.DateTime)  # Application deadline
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def get_requirements_list(self):
+        """Return requirements as a list if stored as JSON or newline-separated text."""
+        if not self.requirements:
+            return []
+
+        try:
+            import json
+            data = json.loads(self.requirements)
+            if isinstance(data, list):
+                return data
+        except Exception:
+            pass
+
+        # fallback split by newlines
+        return [r.strip() for r in self.requirements.splitlines() if r.strip()]
+
+    def __repr__(self):
+        return f'<Opportunity {self.title} ({self.type})>'
+
+
 class Application(db.Model):
     __tablename__ = 'applications'
 

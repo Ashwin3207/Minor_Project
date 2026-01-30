@@ -1,1 +1,8 @@
 env/
+uploads/
+__pycache__/
+*.db
+*.sqlite
+*.sqlite3
+.env
+.DS_Store

@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}{% if opportunity %}Edit{% else %}Create{% endif %} {{ opp_type }} - Admin | TPC Portal{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">{% if opportunity %}Edit{% else %}Post a New{% endif %} {{ opp_type }}</h4>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <form method="POST" novalidate>
+                        <!-- Title -->
+                        <div class="mb-4">
+                            <label for="title" class="form-label fw-bold">Title <span class="text-danger">*</span></label>
+                            <input type="text" 
+                                   class="form-control form-control-lg" 
+                                   id="title" 
+                                   name="title" 
+                                   placeholder="e.g. Senior Software Engineer, Python Bootcamp, AI Hackathon 2024" 
+                                   value="{{ opportunity.title if opportunity else '' }}"
+                                   required 
+                                   autofocus>
+                        </div>
+
+                        <!-- Organizer/Company Name -->
+                        <div class="mb-4">
+                            <label for="organizer" class="form-label fw-bold">
+                                {% if opp_type == 'Job' %}Company Name{% elif opp_type == 'Internship' %}Organization Name{% else %}Organizer{% endif %}
+                                <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" 
+                                   class="form-control form-control-lg" 
+                                   id="organizer" 
+                                   name="organizer" 
+                                   placeholder="e.g. Google, IIT, CodeChef" 
+                                   value="{{ opportunity.organizer if opportunity else '' }}"
+                                   required>
+                        </div>
+
+                        <!-- Date -->
+                        <div class="mb-4">
+                            <label for="date" class="form-label fw-bold">Date <span class="text-danger">*</span></label>
+                            <input type="datetime-local" 
+                                   class="form-control form-control-lg" 
+                                   id="date" 
+                                   name="date" 
+                                   value="{% if opportunity and opportunity.date %}{{ opportunity.date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}"
+                                   required>
+                            <div class="form-text text-muted">Event date/deadline for the opportunity</div>
+                        </div>
+
+                        <!-- Mode -->
+                        <div class="mb-4">
+                            <label for="mode" class="form-label fw-bold">Mode</label>
+                            <select class="form-select form-select-lg" id="mode" name="mode">
+                                <option value="">Select mode...</option>
+                                <option value="Online" {% if opportunity and opportunity.mode == 'Online' %}selected{% endif %}>Online</option>
+                                <option value="Offline" {% if opportunity and opportunity.mode == 'Offline' %}selected{% endif %}>Offline</option>
+                                <option value="Hybrid" {% if opportunity and opportunity.mode == 'Hybrid' %}selected{% endif %}>Hybrid</option>
+                            </select>
+                        </div>
+
+                        <!-- Job/Internship Specific Fields -->
+                        {% if opp_type in ['Job', 'Internship'] %}
+                            <!-- CTC / Package -->
+                            <div class="mb-4">
+                                <label for="ctc" class="form-label fw-bold">CTC / Package <span class="text-danger">*</span></label>
+                                <input type="text" 
+                                       class="form-control form-control-lg" 
+                                       id="ctc" 
+                                       name="ctc" 
+                                       placeholder="e.g. 12 LPA, 8-10 LPA, 500/month" 
+                                       value="{{ opportunity.ctc if opportunity else '' }}"
+                                       required>
+                            </div>
+
+                            <!-- Minimum CGPA -->
+                            <div class="mb-4">
+                                <label for="min_cgpa" class="form-label fw-bold">Minimum CGPA Required</label>
+                                <input type="number" 
+                                       step="0.01" 
+                                       min="0" 
+                                       max="10" 
+                                       class="form-control form-control-lg" 
+                                       id="min_cgpa" 
+                                       name="min_cgpa" 
+                                       placeholder="e.g. 7.5" 
+                                       value="{{ opportunity.min_cgpa if opportunity else '' }}">
+                            </div>
+
+                            <!-- Allowed Branches -->
+                            <div class="mb-4">
+                                <label for="allowed_branches" class="form-label fw-bold">Allowed Branches <span class="text-danger">*</span></label>
+                                <input type="text" 
+                                       class="form-control form-control-lg" 
+                                       id="allowed_branches" 
+                                       name="allowed_branches" 
+                                       placeholder="e.g. CSE,IT,ECE,CS,AI,DS (comma separated)" 
+                                       value="{{ opportunity.allowed_branches if opportunity else '' }}"
+                                       required>
+                            </div>
+
+                            <!-- Application Deadline -->
+                            <div class="mb-4">
+                                <label for="deadline" class="form-label fw-bold">Application Deadline <span class="text-danger">*</span></label>
+                                <input type="datetime-local" 
+                                       class="form-control form-control-lg" 
+                                       id="deadline" 
+                                       name="deadline" 
+                                       value="{% if opportunity and opportunity.deadline %}{{ opportunity.deadline.strftime('%Y-%m-%dT%H:%M') }}{% endif %}"
+                                       required>
+                            </div>
+                        {% endif %}
+
+                        <!-- Description -->
+                        <div class="mb-4">
+                            <label for="description" class="form-label fw-bold">Description <span class="text-danger">*</span></label>
+                            <textarea class="form-control form-control-lg" 
+                                      id="description" 
+                                      name="description" 
+                                      rows="8" 
+                                      placeholder="Provide details about the opportunity, role, location, selection process, etc."
+                                      required>{{ opportunity.description if opportunity else '' }}</textarea>
+                        </div>
+
+                        <!-- Requirements -->
+                        <div class="mb-4">
+                            <label for="requirements" class="form-label fw-bold">Requirements</label>
+                            <textarea class="form-control form-control-lg" 
+                                      id="requirements" 
+                                      name="requirements" 
+                                      rows="5" 
+                                      placeholder="List requirements (one per line):&#10;- Minimum CGPA 7.0&#10;- Skills: Python, Java&#10;- Allowed branches: CSE, IT">{{ opportunity.requirements if opportunity else '' }}</textarea>
+                            <div class="form-text text-muted">One requirement per line. Leave empty if no specific requirements.</div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid mt-5">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                {% if opportunity %}Update {{ opp_type }}{% else %}Post {{ opp_type }}{% endif %}
+                            </button>
+                        </div>
+
+                        <div class="text-center mt-3">
+                            <small class="text-muted">
+                                <a href="{{ url_for('admin.post_job') }}">← Back to Choose Opportunity Type</a>
+                            </small>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ opportunity.title }} - TPC Portal
+{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <a href="{{ url_for('student.browse_opportunities') }}" 
+       class="btn btn-link mb-3">
+        ← Back to Opportunities
+    </a>
+
+    <div class="row">
+
+        <!-- MAIN CONTENT -->
+        <div class="col-lg-8">
+
+            <div class="card shadow-sm mb-4 border-0">
+
+                <div class="card-header bg-primary text-white py-4">
+                    <h2>{{ opportunity.title }}</h2>
+                    <small>
+                        {{ opportunity.organizer or opportunity.company_name or 'Posted by Admin' }}
+                    </small>
+                </div>
+
+                <div class="card-body">
+
+                    <p>
+                        <strong>Date:</strong>
+                        {{ opportunity.date.strftime('%d %b %Y, %I:%M %p') if opportunity.date else 'TBA' }}
+                    </p>
+
+                    <p>
+                        <strong>Mode:</strong>
+                        {{ opportunity.mode or 'Online/Offline' }}
+                    </p>
+
+                    <hr>
+
+                    <h5>Description</h5>
+                    <p>{{ opportunity.description }}</p>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- SIDEBAR -->
+        <div class="col-lg-4">
+
+            <div class="card shadow-sm">
+
+                <div class="card-body">
+
+                    {% if opportunity.type in ['Job','Internship'] %}
+
+                        {% if already_applied %}
+                            <div class="alert alert-success">
+                                Already applied
+                            </div>
+
+                        {% elif student_profile %}
+                            <form method="POST"
+                                  action="{{ url_for('student.apply_for_opportunity', opp_id=opportunity.id) }}">
+                                <button class="btn btn-success w-100">
+                                    Apply Now
+                                </button>
+                            </form>
+
+                        {% else %}
+                            <a href="{{ url_for('student.profile') }}"
+                               class="btn btn-warning w-100">
+                                Complete Profile
+                            </a>
+                        {% endif %}
+
+                    {% else %}
+                        <div class="alert alert-info">
+                            Informational event
+                        </div>
+                    {% endif %}
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

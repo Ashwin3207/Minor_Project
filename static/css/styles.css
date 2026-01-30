@@ -57,10 +57,18 @@ main {
     overflow: hidden;
 }
 
-.card:hover {
+.card:hover:not(.modal-content) {
     transform: translateY(-4px);
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12) !important;
     transition: all 0.25s ease;
+}
+
+.modal-content {
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.modal-content:hover {
+    /* No transform for modal content */
 }
 
 .shadow-sm {
@@ -72,7 +80,8 @@ main {
    ============================================= */
 .btn {
     font-weight: 500;
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
+    white-space: nowrap;
 }
 
 .btn-lg {
@@ -87,7 +96,7 @@ main {
 .btn-primary:hover {
     background-color: var(--primary-dark);
     border-color: var(--primary-dark);
-    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .btn-success {
@@ -115,8 +124,12 @@ main {
     --bs-table-accent-bg: rgba(0,0,0,0.02);
 }
 
+.table-hover tbody tr {
+    transition: background-color 0.15s ease-in-out;
+}
+
 .table-hover tbody tr:hover {
-    background-color: rgba(13, 110, 253, 0.08) !important;
+    background-color: rgba(13, 110, 253, 0.05) !important;
 }
 
 /* =============================================
@@ -142,6 +155,45 @@ main {
 .alert {
     border-radius: 8px;
     margin-bottom: 1.5rem;
+}
+
+/* =============================================
+   Modals
+   ============================================= */
+.modal {
+    /* Prevent flickering during transitions */
+    will-change: auto;
+}
+
+.modal.fade {
+    transition: opacity 0.2s ease-in-out;
+}
+
+.modal-dialog {
+    transition: transform 0.2s ease-in-out;
+}
+
+.modal-content {
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.modal-body {
+    background-color: #fff;
+}
+
+.modal-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+    transition: opacity 0.15s ease-in-out;
+}
+
+.modal-backdrop.show {
+    opacity: 0.5;
 }
 
 /* =============================================

@@ -104,6 +104,7 @@
                             <th>Status</th>
                             <th>Applied Date</th>
                             <th>Profile</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -148,75 +149,43 @@
                                 <td>
                                     {% if application.student.student_profile %}
                                         <button class="btn btn-sm btn-info" data-bs-toggle="modal" 
-                                                data-bs-target="#profileModal{{ application.student.id }}" 
+                                                data-bs-target="#profileModal{{ application.id }}" 
                                                 title="View Student Profile">
                                             <i class="bi bi-person-fill me-1"></i> View Profile
                                         </button>
-
-                                        <!-- Profile Modal -->
-                                        <div class="modal fade" id="profileModal{{ application.student.id }}" 
-                                             tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
-                                            <div class="modal-dialog modal-lg">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">
-                                                            {{ application.student.username }}'s Profile
-                                                        </h5>
-                                                        <button type="button" class="btn-close" 
-                                                                data-bs-dismiss="modal" aria-label="Close"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <div class="row g-3">
-                                                            <div class="col-md-6">
-                                                                <strong>Username:</strong><br>
-                                                                {{ application.student.username }}
-                                                            </div>
-                                                            <div class="col-md-6">
-                                                                <strong>Email:</strong><br>
-                                                                {{ application.student.email }}
-                                                            </div>
-                                                            <div class="col-md-6">
-                                                                <strong>CGPA:</strong><br>
-                                                                {{ application.student.student_profile.cgpa }}
-                                                            </div>
-                                                            <div class="col-md-6">
-                                                                <strong>Branch:</strong><br>
-                                                                {{ application.student.student_profile.branch }}
-                                                            </div>
-                                                            <div class="col-md-6">
-                                                                <strong>10th Percentage:</strong><br>
-                                                                {{ application.student.student_profile.tenth_percentage }}%
-                                                            </div>
-                                                            <div class="col-md-6">
-                                                                <strong>12th Percentage:</strong><br>
-                                                                {{ application.student.student_profile.twelfth_percentage }}%
-                                                            </div>
-                                                            <div class="col-md-6">
-                                                                <strong>Has Backlog:</strong><br>
-                                                                <span class="badge {% if application.student.student_profile.has_backlog %}bg-danger{% else %}bg-success{% endif %}">
-                                                                    {% if application.student.student_profile.has_backlog %}Yes{% else %}No{% endif %}
-                                                                </span>
-                                                            </div>
-                                                            <div class="col-md-6">
-                                                                <strong>Skills:</strong><br>
-                                                                <small>{{ application.student.student_profile.skills or 'Not specified' }}</small>
-                                                            </div>
-                                                            {% if application.student.student_profile.resume_link %}
-                                                                <div class="col-12">
-                                                                    <strong>Resume:</strong><br>
-                                                                    <a href="{{ application.student.student_profile.resume_link }}" 
-                                                                       target="_blank" class="btn btn-sm btn-outline-primary">
-                                                                        <i class="bi bi-file-pdf me-1"></i> View Resume
-                                                                    </a>
-                                                                </div>
-                                                            {% endif %}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
                                     {% else %}
                                         <span class="text-muted small">No profile</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if application.status == 'Applied' %}
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <form method="POST" action="{{ url_for('admin.confirm_application', application_id=application.id) }}" style="display: inline;">
+                                                <button type="submit" name="status" value="Shortlisted" class="btn btn-sm btn-warning" title="Shortlist Candidate">
+                                                    <i class="bi bi-check-circle me-1"></i> Shortlist
+                                                </button>
+                                            </form>
+                                            <form method="POST" action="{{ url_for('admin.confirm_application', application_id=application.id) }}" style="display: inline;">
+                                                <button type="submit" name="status" value="Rejected" class="btn btn-sm btn-danger" title="Reject Candidate">
+                                                    <i class="bi bi-x-circle me-1"></i> Reject
+                                                </button>
+                                            </form>
+                                        </div>
+                                    {% elif application.status == 'Shortlisted' %}
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <form method="POST" action="{{ url_for('admin.confirm_application', application_id=application.id) }}" style="display: inline;">
+                                                <button type="submit" name="status" value="Selected" class="btn btn-sm btn-success" title="Select Candidate">
+                                                    <i class="bi bi-check2-circle me-1"></i> Select
+                                                </button>
+                                            </form>
+                                            <form method="POST" action="{{ url_for('admin.confirm_application', application_id=application.id) }}" style="display: inline;">
+                                                <button type="submit" name="status" value="Rejected" class="btn btn-sm btn-danger" title="Reject Candidate">
+                                                    <i class="bi bi-x-circle me-1"></i> Reject
+                                                </button>
+                                            </form>
+                                        </div>
+                                    {% else %}
+                                        <span class="badge bg-secondary">No Actions</span>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -287,6 +256,96 @@
             No applications found for this job.
         </div>
     {% endif %}
+
+    <!-- Profile Modals (Outside Loop) -->
+    {% if applications.items %}
+        {% for application in applications.items %}
+            {% if application.student.student_profile %}
+                <!-- Profile Modal for {{ application.student.username }} -->
+                <div class="modal fade" id="profileModal{{ application.id }}" 
+                     tabindex="-1" aria-labelledby="profileModalLabel{{ application.id }}" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="profileModalLabel{{ application.id }}">
+                                    {{ application.student.username }}'s Profile
+                                </h5>
+                                <button type="button" class="btn-close" 
+                                        data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <strong>Username:</strong><br>
+                                        {{ application.student.username }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Email:</strong><br>
+                                        {{ application.student.email }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>CGPA:</strong><br>
+                                        {{ application.student.student_profile.cgpa }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Branch:</strong><br>
+                                        {{ application.student.student_profile.branch }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>10th Percentage:</strong><br>
+                                        {{ application.student.student_profile.tenth_percentage }}%
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>12th Percentage:</strong><br>
+                                        {{ application.student.student_profile.twelfth_percentage }}%
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Has Backlog:</strong><br>
+                                        <span class="badge {% if application.student.student_profile.has_backlog %}bg-danger{% else %}bg-success{% endif %}">
+                                            {% if application.student.student_profile.has_backlog %}Yes{% else %}No{% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Skills:</strong><br>
+                                        <small>{{ application.student.student_profile.skills or 'Not specified' }}</small>
+                                    </div>
+                                    {% if application.student.student_profile.resume_link %}
+                                        <div class="col-12">
+                                            <strong>Resume:</strong><br>
+                                            <a href="{{ url_for('admin.download_student_resume', student_id=application.student.id) }}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-download me-1"></i> Download Resume
+                                            </a>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
 </div>
+
+<!-- Fix for aria-hidden accessibility issue with modals -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get all modals
+    const modals = document.querySelectorAll('.modal');
+    
+    modals.forEach(modal => {
+        // When modal is shown, set aria-hidden to false
+        modal.addEventListener('show.bs.modal', function() {
+            this.setAttribute('aria-hidden', 'false');
+        });
+        
+        // When modal is hidden, set aria-hidden to true
+        modal.addEventListener('hide.bs.modal', function() {
+            this.setAttribute('aria-hidden', 'true');
+        });
+    });
+});
+</script>
 
 {% endblock %}

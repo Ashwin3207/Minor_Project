@@ -1,9 +1,11 @@
-from flask import render_template, redirect, url_for, flash, request, session
+from flask import render_template, redirect, url_for, flash, request, session, send_file
 from datetime import datetime
 from functools import wraps
+import os
+from werkzeug.utils import secure_filename
 
 from app import db
-from app.models import StudentProfile, Job, Application, User
+from app.models import StudentProfile, Job, Application, User, Opportunity
 from app.student import bp
 
 
@@ -15,6 +17,44 @@ def student_required(f):
             return redirect(url_for('auth.login'))
         return f(*args, **kwargs)
     return decorated_function
+
+
+def allowed_file(filename):
+    """Check if file extension is allowed"""
+    from flask import current_app
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
+
+
+def save_resume(file, user_id):
+    """Save uploaded resume and return the file path"""
+    from flask import current_app
+    
+    if not file or file.filename == '':
+        raise ValueError('No file selected')
+    
+    if not allowed_file(file.filename):
+        raise ValueError('Only PDF, DOC, and DOCX files are allowed')
+    
+    # Create uploads folder if it doesn't exist
+    upload_folder = current_app.config['UPLOAD_FOLDER']
+    if not os.path.exists(upload_folder):
+        os.makedirs(upload_folder)
+    
+    # Create user-specific folder
+    user_folder = os.path.join(upload_folder, f'student_{user_id}')
+    if not os.path.exists(user_folder):
+        os.makedirs(user_folder)
+    
+    # Generate secure filename
+    filename = secure_filename(file.filename)
+    # Add timestamp to make filename unique
+    timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S_')
+    filename = timestamp + filename
+    
+    filepath = os.path.join(user_folder, filename)
+    file.save(filepath)
+    
+    return filepath
 
 
 @bp.route('/profile', methods=['GET', 'POST'])
@@ -180,7 +220,7 @@ def applications():
     )
 
 
-@bp.route('/resume')
+@bp.route('/resume', methods=['GET', 'POST'])
 @student_required
 def resume():
     user_id = session['user_id']
@@ -188,8 +228,115 @@ def resume():
     profile = StudentProfile.query.filter_by(user_id=user_id).first()
 
     if not profile:
-        flash('Please complete your profile to view resume.', 'warning')
+        flash('Please complete your profile to upload resume.', 'warning')
         return redirect(url_for('student.profile'))
 
-    return render_template('student/resume.html', user=user, profile=profile, now=datetime.utcnow()  
-)
+    if request.method == 'POST':
+        try:
+            if 'resume' not in request.files:
+                flash('No file selected. Please choose a file to upload.', 'danger')
+                return redirect(url_for('student.resume'))
+            
+            file = request.files['resume']
+            
+            if file.filename == '':
+                flash('Please select a file.', 'danger')
+                return redirect(url_for('student.resume'))
+            
+            if not allowed_file(file.filename):
+                flash('Only PDF, DOC, and DOCX files are allowed.', 'danger')
+                return redirect(url_for('student.resume'))
+            
+            # Save the resume
+            filepath = save_resume(file, user_id)
+            
+            # Delete old resume if exists
+            if profile.resume_link and os.path.exists(profile.resume_link):
+                try:
+                    os.remove(profile.resume_link)
+                except Exception as e:
+                    print(f"Could not delete old resume: {e}")
+            
+            # Update profile with new resume path
+            profile.resume_link = filepath
+            profile.updated_at = datetime.utcnow()
+            db.session.commit()
+            
+            flash('Resume uploaded successfully!', 'success')
+            return redirect(url_for('student.resume'))
+        
+        except ValueError as ve:
+            flash(f'Upload error: {str(ve)}', 'danger')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error uploading resume: {str(e)}', 'danger')
+        
+        return redirect(url_for('student.resume'))
+
+    return render_template('student/resume.html', user=user, profile=profile, now=datetime.utcnow())
+
+
+@bp.route('/download-resume')
+@student_required
+def download_resume():
+    """Download user's own resume"""
+    user_id = session['user_id']
+    profile = StudentProfile.query.filter_by(user_id=user_id).first()
+    
+    if not profile or not profile.resume_link or not os.path.exists(profile.resume_link):
+        flash('No resume found. Please upload a resume first.', 'danger')
+        return redirect(url_for('student.resume'))
+    
+    try:
+        filename = os.path.basename(profile.resume_link)
+        directory = os.path.dirname(profile.resume_link)
+        return send_file(profile.resume_link, as_attachment=True, download_name=filename)
+    except Exception as e:
+        flash(f'Error downloading resume: {str(e)}', 'danger')
+        return redirect(url_for('student.resume'))
+
+
+@bp.route('/opportunities')
+@student_required
+def browse_opportunities():
+    """Browse all opportunities grouped by type"""
+    opportunities = Opportunity.query.order_by(Opportunity.created_at.desc()).all()
+    return render_template('student/opportunities.html', opportunities=opportunities)
+
+
+@bp.route('/opportunity/<int:opp_id>')
+@student_required
+def view_opportunity(opp_id):
+    """View details of a single opportunity"""
+    opp = Opportunity.query.get_or_404(opp_id)
+    user_id = session['user_id']
+    profile = StudentProfile.query.filter_by(user_id=user_id).first()
+    
+    # For now, opportunities don't have direct application tracking
+    # (unless they're job/internship types which map to Job table)
+    already_applied = False
+    
+    return render_template(
+        'student/opportunity_detail.html',
+        opportunity=opp,
+        student_profile=profile,
+        already_applied=already_applied
+    )
+
+
+@bp.route('/opportunity/<int:opp_id>/apply', methods=['POST'])
+@student_required
+def apply_for_opportunity(opp_id):
+    """Apply for a job/internship opportunity"""
+    opp = Opportunity.query.get_or_404(opp_id)
+    user_id = session['user_id']
+    
+    # Only jobs/internships support applications for now
+    if opp.type not in ['Job', 'Internship']:
+        flash('You can only apply for jobs and internships.', 'warning')
+        return redirect(url_for('student.view_opportunity', opp_id=opp_id))
+    
+    # For now, opportunities don't have direct application support
+    # This feature requires additional database schema updates
+    flash('Application feature for opportunities is coming soon.', 'info')
+    return redirect(url_for('student.view_opportunity', opp_id=opp_id))

@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}
+Opportunities - TPC Portal
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Opportunities</h1>
+        <a href="{{ url_for('student.jobs') }}" class="btn btn-outline-secondary">
+            ← Back to Jobs
+        </a>
+    </div>
+
+    {% if opportunities %}
+
+        {% set types = ['Job', 'Internship', 'Session', 'Hackathon', 'Bootcamp', 'Seminar'] %}
+        {% set plural = {
+            'Job':'Jobs',
+            'Internship':'Internships',
+            'Session':'Sessions',
+            'Hackathon':'Hackathons',
+            'Bootcamp':'Bootcamps',
+            'Seminar':'Seminars'
+        } %}
+
+        {% for t in types %}
+
+            {% set items = opportunities | selectattr('type','equalto', t) | list %}
+
+            {% if items %}
+
+                <h3 class="mt-5 mb-3">
+                    {{ plural[t] }} 
+                    <span class="text-muted">({{ items|length }})</span>
+                </h3>
+
+                <div class="row g-3">
+
+                    {% for opp in items %}
+
+                        <div class="col-12">
+
+                            <div class="card shadow-sm border-start border-4 border-primary h-100">
+
+                                <div class="card-body">
+
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+
+                                        <div>
+                                            <h5 class="mb-1">
+
+                                                <a href="{{ url_for('student.view_opportunity', opp_id=opp.id) }}"
+                                                   class="text-decoration-none">
+
+                                                    {{ opp.title }}
+
+                                                </a>
+                                            </h5>
+
+                                            <small class="text-muted">
+                                                {{ opp.organizer or opp.company_name or 'Posted by Admin' }}
+                                                •
+                                                {{ opp.date.strftime('%d %b %Y') if opp.date else 'TBA' }}
+                                            </small>
+                                        </div>
+
+                                        <span class="badge bg-primary">
+                                            {{ opp.type }}
+                                        </span>
+
+                                    </div>
+
+                                    <p class="mb-3 text-muted">
+                                        {{ opp.description | truncate(160) }}
+                                    </p>
+
+                                    {% if opp.type in ['Job', 'Internship'] %}
+
+                                        <div class="row g-2 mb-3 small">
+
+                                            <div class="col-md-3">
+                                                <span class="badge bg-light text-dark w-100">
+                                                    {{ opp.ctc or 'CTC —' }}
+                                                </span>
+                                            </div>
+
+                                            <div class="col-md-3">
+                                                <span class="badge bg-light text-dark w-100">
+                                                    CGPA: {{ opp.min_cgpa or '—' }}
+                                                </span>
+                                            </div>
+
+                                            <div class="col-md-3">
+                                                <span class="badge bg-light text-dark w-100">
+                                                    {{ opp.allowed_branches or 'All Branches' }}
+                                                </span>
+                                            </div>
+
+                                            <div class="col-md-3">
+                                                <span class="badge bg-light text-dark w-100">
+                                                    {{ opp.deadline.strftime('%d %b') if opp.deadline else 'TBA' }}
+                                                </span>
+                                            </div>
+
+                                        </div>
+
+                                    {% endif %}
+
+                                    <a href="{{ url_for('student.view_opportunity', opp_id=opp.id) }}"
+                                       class="btn btn-sm btn-primary">
+
+                                        View Details
+
+                                    </a>
+
+                                </div>
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% endif %}
+
+        {% endfor %}
+
+    {% else %}
+
+        <div class="text-center py-5">
+
+            <h3 class="text-muted">No opportunities available</h3>
+
+            <p class="text-muted">
+                Check back later for new jobs, internships, and events.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
