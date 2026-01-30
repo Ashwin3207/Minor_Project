@@ -102,6 +102,36 @@ def view_students():
     return render_template('admin/view_students.html', students=students)
 
 
+@bp.route('/view_jobs')
+@admin_required
+def view_jobs():
+    page = request.args.get('page', 1, type=int)
+    status_filter = request.args.get('status', '').strip()
+
+    query = Job.query.order_by(Job.created_at.desc())
+
+    jobs = query.paginate(page=page, per_page=10, error_out=False)
+
+    return render_template('admin/view_jobs.html', jobs=jobs, status_filter=status_filter,  now=datetime.utcnow())
+
+
+@bp.route('/job_applicants/<int:job_id>')
+@admin_required
+def job_applicants(job_id):
+    job = Job.query.get_or_404(job_id)
+    page = request.args.get('page', 1, type=int)
+    status_filter = request.args.get('status', '').strip()
+
+    query = Application.query.filter_by(job_id=job_id).join(User)
+
+    if status_filter:
+        query = query.filter(Application.status == status_filter)
+
+    applications = query.order_by(Application.applied_at.desc()).paginate(page=page, per_page=15, error_out=False)
+
+    return render_template('admin/job_applicants.html', job=job, applications=applications, status_filter=status_filter)
+
+
 @bp.route('/export_students')
 @admin_required
 def export_students():

@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Job Applications - Admin | TPC Portal{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Student Job Applications</h1>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+            ← Back to Dashboard
+        </a>
+    </div>
+
+    {% if applications %}
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Student Name</th>
+                        <th>Roll No</th>
+                        <th>Branch</th>
+                        <th>Company</th>
+                        <th>Job Title</th>
+                        <th>CTC</th>
+                        <th>Applied On</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                {% for app in applications %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+
+                        <td>{{ app.student.name }}</td>
+                        <td>{{ app.student.roll_no }}</td>
+                        <td>{{ app.student.branch }}</td>
+
+                        <td>{{ app.job.company_name }}</td>
+                        <td>{{ app.job.job_title }}</td>
+                        <td>{{ app.job.ctc }}</td>
+
+                        <td>{{ app.applied_at.strftime('%d %b %Y') }}</td>
+
+                        <!-- STATUS -->
+
+                        <td>
+                            {% if app.status == 'Placed' %}
+                                <span class="badge bg-success">Placed</span>
+                            {% elif app.status == 'Rejected' %}
+                                <span class="badge bg-danger">Rejected</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- ACTIONS -->
+
+                        <td class="d-flex gap-2">
+
+                            <a href="{{ url_for('admin.mark_placed', app_id=app.id) }}"
+                               class="btn btn-sm btn-success">
+                                Place
+                            </a>
+
+                            <a href="{{ url_for('admin.reject_application', app_id=app.id) }}"
+                               class="btn btn-sm btn-outline-danger">
+                                Reject
+                            </a>
+
+                        </td>
+                    </tr>
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+    </div>
+
+    {% else %}
+        <div class="text-center py-5">
+            <h3 class="text-muted">No applications found</h3>
+        </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}
