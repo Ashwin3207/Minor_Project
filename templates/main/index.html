@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Welcome - Training & Placement Cell Portal{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<div class="bg-primary text-white py-5 text-center" style="background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%);">
+    <div class="container py-5">
+        <h1 class="display-3 fw-bold mb-3">Training & Placement Cell</h1>
+        <p class="lead fs-4 mb-4 opacity-90">
+            Connecting Talent with Opportunity — Your Gateway to a Bright Career
+        </p>
+
+        {% if not current_user %}
+        <div class="mt-5">
+            <a href="{{ url_for('auth.signup') }}" 
+               class="btn btn-light btn-lg px-5 py-3 me-3 rounded-pill shadow-lg">
+                <i class="bi bi-person-plus-fill me-2"></i> Create Account
+            </a>
+            <a href="{{ url_for('auth.login') }}" 
+               class="btn btn-outline-light btn-lg px-5 py-3 rounded-pill shadow-lg">
+                <i class="bi bi-box-arrow-in-right me-2"></i> Login
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container py-5">
+
+    <!-- Quick Stats / Highlights -->
+    <div class="row text-center g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body py-5">
+                    <i class="bi bi-people-fill display-1 text-primary mb-3"></i>
+                    <h3 class="fw-bold">Students</h3>
+                    <p class="text-muted">Register, build profile, apply to dream companies</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body py-5">
+                    <i class="bi bi-briefcase-fill display-1 text-success mb-3"></i>
+                    <h3 class="fw-bold">Companies</h3>
+                    <p class="text-muted">Post jobs, find eligible talent from our campus</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body py-5">
+                    <i class="bi bi-trophy-fill display-1 text-warning mb-3"></i>
+                    <h3 class="fw-bold">Placements</h3>
+                    <p class="text-muted">Track records, highest packages & success stories</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row align-items-center mb-5 py-5 bg-light rounded-4 px-4">
+        <div class="col-lg-6 mb-4 mb-lg-0">
+            <h2 class="fw-bold mb-4">Why Use Our Portal?</h2>
+            <ul class="list-unstyled fs-5">
+                <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-3"></i>One-click job applications with eligibility auto-check</li>
+                <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-3"></i>Real-time application status tracking</li>
+                <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-3"></i>Powerful admin dashboard for TPO</li>
+                <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-3"></i>Export student data & placement analytics</li>
+                <li><i class="bi bi-check-circle-fill text-success me-3"></i>Secure & role-based access</li>
+            </ul>
+        </div>
+        <div class="col-lg-6 text-center">
+            <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                 alt="Students attending a campus placement drive" 
+                 class="img-fluid rounded-4 shadow-lg" 
+                 loading="lazy">
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="text-center py-5">
+        {% if current_user %}
+            <h3 class="mb-4">
+                {% if current_user.role == 'Student' %}
+                    Ready to kickstart your career?
+                {% elif current_user.role == 'Admin' %}
+                    Manage placements today
+                {% endif %}
+            </h3>
+
+            {% if current_user.role == 'Student' %}
+            <a href="{{ url_for('student.jobs') }}" 
+               class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow">
+                <i class="bi bi-search me-2"></i> Browse Latest Jobs
+            </a>
+            {% elif current_user.role == 'Admin' %}
+            <a href="{{ url_for('admin.dashboard') }}" 
+               class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow">
+                <i class="bi bi-speedometer2 me-2"></i> Go to Dashboard
+            </a>
+            {% endif %}
+
+        {% else %}
+            <h3 class="mb-4">Get started in seconds</h3>
+            <a href="{{ url_for('auth.signup') }}" 
+               class="btn btn-success btn-lg px-5 py-3 me-3 rounded-pill shadow">
+                Sign Up Now
+            </a>
+            <a href="{{ url_for('auth.login') }}" 
+               class="btn btn-outline-primary btn-lg px-5 py-3 rounded-pill shadow">
+                Login
+            </a>
+        {% endif %}
+    </div>
+
+</div>
+
+{% endblock %}

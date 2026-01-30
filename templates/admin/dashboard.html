@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard - TPC Portal{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+    <h1 class="mb-4">Training & Placement Cell Dashboard</h1>
+
+    <!-- Quick Stats Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">Total Students</h5>
+                    <h2 class="display-5 fw-bold text-primary">{{ stats.total_students | default(0) }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">Total Jobs Posted</h5>
+                    <h2 class="display-5 fw-bold text-success">{{ stats.total_jobs | default(0) }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">Total Applications</h5>
+                    <h2 class="display-5 fw-bold text-info">{{ stats.total_applications | default(0) }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">Students Placed</h5>
+                    <h2 class="display-5 fw-bold text-warning">{{ stats.total_placed | default(0) }}</h2>
+                    <small class="text-success">
+                        {% if stats.total_applications > 0 %}
+                            {{ ((stats.total_placed / stats.total_applications) * 100) | round(1) }}% placement rate
+                        {% else %}
+                            0% placement rate
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4">
+        <!-- Placement Status Pie Chart -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Application Status Overview</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="statusPieChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity / Placeholder for more charts -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-3">
+                        <a href="{{ url_for('admin.post_job') }}" class="btn btn-lg btn-primary">
+                            <i class="bi bi-plus-circle me-2"></i> Post New Job
+                        </a>
+                        <a href="{{ url_for('admin.view_students') }}" class="btn btn-lg btn-outline-primary">
+                            <i class="bi bi-people me-2"></i> View & Filter Students
+                        </a>
+                        <a href="{{ url_for('admin.export_students') }}" class="btn btn-lg btn-outline-success">
+                            <i class="bi bi-download me-2"></i> Export Student Data (CSV)
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Applications Summary (simple table or card) -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Pending Applications</h5>
+                    <span class="badge bg-warning fs-6">{{ stats.pending_applications | default(0) }}</span>
+                </div>
+                <div class="card-body">
+                    {% if stats.pending_applications > 0 %}
+                        <p class="text-muted">There are {{ stats.pending_applications }} applications awaiting review.</p>
+                        <!-- You can later add a mini-table or link to detailed view -->
+                        <a href="#" class="btn btn-sm btn-outline-warning">View All Pending Applications</a>
+                    {% else %}
+                        <p class="text-success mb-0">No pending applications at the moment.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const ctx = document.getElementById('statusPieChart').getContext('2d');
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: [
+                'Placed',
+                'Pending / Applied',
+                // You can add more statuses later: Shortlisted, Rejected, etc.
+            ],
+            datasets: [{
+                data: [
+                    {{ stats.total_placed | default(0) }},
+                    {{ stats.pending_applications | default(0) }}
+                ],
+                backgroundColor: [
+                    '#198754',   // success green
+                    '#ffc107',   // warning yellow
+                ],
+                borderWidth: 1,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: { size: 14 }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            label += context.parsed;
+                            return label;
+                        }
+                    }
+                }
+            },
+            cutout: '65%'
+        }
+    });
+});
+</script>
+{% endblock %}

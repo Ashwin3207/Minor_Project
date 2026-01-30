@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}My Profile - Update Details{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-7">
+
+            <div class="card shadow border-0 rounded-4">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h3 class="mb-1 fw-bold">Student Profile</h3>
+                    <p class="mb-0">Keep your academic & skill details updated</p>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+
+                    {% if not profile %}
+                    <div class="alert alert-info mb-4">
+                        <strong>Almost there!</strong> Please fill in your details below so companies can find you 
+                        and we can show you eligible job opportunities.
+                    </div>
+                    {% endif %}
+
+                    <form method="POST" novalidate>
+
+                        <!-- Academic Details Section -->
+                        <h5 class="mb-4 border-bottom pb-2 text-primary">Academic Details</h5>
+
+                        <div class="row g-4 mb-5">
+                            <div class="col-md-6">
+                                <label for="tenth_percentage" class="form-label fw-semibold">10th Percentage / CGPA</label>
+                                <input type="number" step="0.01" min="0" max="100" 
+                                       class="form-control form-control-lg" 
+                                       id="tenth_percentage" name="tenth_percentage" 
+                                       value="{{ profile.tenth_percentage if profile else '' }}" 
+                                       placeholder="e.g. 92.4 or 9.24" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="twelfth_percentage" class="form-label fw-semibold">12th Percentage / CGPA</label>
+                                <input type="number" step="0.01" min="0" max="100" 
+                                       class="form-control form-control-lg" 
+                                       id="twelfth_percentage" name="twelfth_percentage" 
+                                       value="{{ profile.twelfth_percentage if profile else '' }}" 
+                                       placeholder="e.g. 88.6 or 8.86" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="cgpa" class="form-label fw-semibold">Current CGPA (out of 10)</label>
+                                <input type="number" step="0.01" min="0" max="10" 
+                                       class="form-control form-control-lg" 
+                                       id="cgpa" name="cgpa" 
+                                       value="{{ profile.cgpa if profile else '' }}" 
+                                       placeholder="e.g. 8.45" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="branch" class="form-label fw-semibold">Branch / Stream</label>
+                                <input type="text" class="form-control form-control-lg text-uppercase" 
+                                       id="branch" name="branch" 
+                                       value="{{ profile.branch if profile else '' }}" 
+                                       placeholder="e.g. CSE, IT, ECE, MECH, CS" required>
+                                <div class="form-text text-muted">Use standard short form (CSE/IT/ECE etc.)</div>
+                            </div>
+                        </div>
+
+                        <!-- Skills & Other Info -->
+                        <h5 class="mb-4 border-bottom pb-2 text-primary">Skills & Additional Info</h5>
+
+                        <div class="mb-4">
+                            <label for="skills" class="form-label fw-semibold">Technical & Soft Skills</label>
+                            <textarea class="form-control form-control-lg" 
+                                      id="skills" name="skills" rows="4"
+                                      placeholder="e.g. Python, Java, DSA, Web Development, Communication, Teamwork, Leadership... (comma separated or free text)">{{ profile.skills if profile else '' }}</textarea>
+                            <div class="form-text text-muted">Separate skills with commas or write naturally. This helps in matching jobs.</div>
+                        </div>
+
+                        <div class="mb-4 form-check form-switch form-switch-lg">
+                            <input class="form-check-input" type="checkbox" id="has_backlog" name="has_backlog"
+                                   {% if profile and profile.has_backlog %}checked{% endif %}>
+                            <label class="form-check-label fw-semibold" for="has_backlog">
+                                I have any active/current backlog
+                            </label>
+                            <div class="form-text text-muted small">
+                                Only check if you currently have any uncleared backlog/backlogs.
+                            </div>
+                        </div>
+
+                        <div class="mb-5">
+                            <label for="resume_link" class="form-label fw-semibold">Resume Link (Google Drive / GitHub / any public link)</label>
+                            <input type="url" class="form-control form-control-lg" 
+                                   id="resume_link" name="resume_link" 
+                                   value="{{ profile.resume_link if profile else '' }}" 
+                                   placeholder="https://drive.google.com/file/... or https://github.com/username/resume.pdf">
+                            <div class="form-text text-muted">Make sure the link is publicly accessible without login.</div>
+                        </div>
+
+                        <!-- Submit -->
+                        <div class="d-grid mt-5">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm">
+                                <i class="bi bi-save-fill me-2"></i>
+                                Save / Update Profile
+                            </button>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+
+            {% if profile %}
+            <div class="card mt-4 border-success shadow-sm">
+                <div class="card-body bg-light text-center">
+                    <h5 class="text-success mb-3">
+                        <i class="bi bi-check-circle-fill me-2"></i>Profile Last Updated
+                    </h5>
+                    <p class="mb-1">{{ profile.updated_at.strftime('%d %b %Y at %I:%M %p') if profile.updated_at else 'Just now' }}</p>
+                    <small class="text-muted">Companies can see this profile when shortlisting candidates.</small>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+{% endblock %}
