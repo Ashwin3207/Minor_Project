@@ -1,6 +1,16 @@
 from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env BEFORE importing config
+load_dotenv()
+
+# Set FLASK_ENV based on .env if not already set
+if 'FLASK_ENV' not in os.environ:
+    os.environ['FLASK_ENV'] = 'development'
+
 from config import config
 
 # Extensions are created globally
@@ -8,6 +18,18 @@ db = SQLAlchemy()
 migrate = Migrate()
 
 def create_app(config_name='default'):
+    import os
+    
+    # If config_name is 'default', check FLASK_ENV environment variable
+    if config_name == 'default':
+        env = os.environ.get('FLASK_ENV', 'development').lower()
+        if env in ['production', 'prod']:
+            config_name = 'production'
+        elif env == 'testing':
+            config_name = 'testing'
+        else:
+            config_name = 'development'
+    
     flask_app = Flask(__name__,
                       # Important: point to root-level templates & static folders
                       template_folder='../templates',

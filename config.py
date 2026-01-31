@@ -9,6 +9,15 @@ from datetime import timedelta
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
+# Helper function to get database URL
+def get_database_url():
+    db_url = os.environ.get('DATABASE_URL')
+    if db_url and db_url.startswith('postgresql://'):
+        return db_url.replace('postgresql://', 'postgresql+psycopg2://', 1)
+    elif db_url:
+        return db_url
+    else:
+        return 'sqlite:///' + os.path.join(basedir, 'tpc_portal.db')
 
 class Config:
     """Base configuration class"""
@@ -20,15 +29,7 @@ class Config:
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=60)
 
     # SQLAlchemy / Database
-    # Supports both SQLite (local dev) and PostgreSQL (production)
-    DATABASE_URL = os.environ.get('DATABASE_URL')
-    if DATABASE_URL and DATABASE_URL.startswith('postgresql://'):
-        # Ensure psycopg2-binary is installed for PostgreSQL
-        SQLALCHEMY_DATABASE_URI = DATABASE_URL.replace('postgresql://', 'postgresql+psycopg2://', 1)
-    else:
-        # Default to SQLite for local development
-        SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-            'sqlite:///' + os.path.join(basedir, 'tpc_portal.db')
+    SQLALCHEMY_DATABASE_URI = get_database_url()
     
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
@@ -61,6 +62,9 @@ class DevelopmentConfig(Config):
 
     # Show detailed error pages
     PROPAGATE_EXCEPTIONS = True
+    
+    # Allow HTTP cookies in development
+    SESSION_COOKIE_SECURE = False
 
 
 class TestingConfig(Config):
@@ -85,16 +89,10 @@ class ProductionConfig(Config):
     # Use a strong secret key from environment
     SECRET_KEY = os.environ.get('SECRET_KEY')  # must be set in production!
 
-    # Use PostgreSQL in production
-    # DATABASE_URL should be set by your hosting provider (Railway, Render, etc.)
-    DATABASE_URL = os.environ.get('DATABASE_URL')
-    if DATABASE_URL and DATABASE_URL.startswith('postgresql://'):
-        SQLALCHEMY_DATABASE_URI = DATABASE_URL.replace('postgresql://', 'postgresql+psycopg2://', 1)
-    else:
-        raise ValueError('DATABASE_URL environment variable must be set in production')
-
     # Session security
-    SESSION_COOKIE_SECURE = True
+    # Note: SESSION_COOKIE_SECURE should be True in production (HTTPS only)
+    # but for local testing with HTTP, set to False
+    SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'False').lower() == 'true'
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
 

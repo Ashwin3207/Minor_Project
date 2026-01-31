@@ -12,6 +12,12 @@ or simply:
     python run.py
 """
 
+from dotenv import load_dotenv
+import os
+
+# Load environment variables first
+load_dotenv()
+
 from app import create_app
 from config import config
 
@@ -21,7 +27,6 @@ config_name = 'development'
 
 # You can override via environment variable
 if __name__ == '__main__':
-    import os
     env = os.environ.get('FLASK_ENV', 'development').lower()
     if env in ['production', 'prod']:
         config_name = 'production'
