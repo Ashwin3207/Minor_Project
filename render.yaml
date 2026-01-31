@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: tpc-portal
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn run:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        scope: secret
+      - key: DATABASE_URL
+        scope: secret
+
+  - type: pserv
+    name: tpc-portal-db
+    plan: free
+    ipAllowList: []

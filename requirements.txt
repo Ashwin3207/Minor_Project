@@ -5,6 +5,9 @@ Flask==3.0.3
 Flask-SQLAlchemy==3.1.1
 SQLAlchemy==2.0.35
 
+# PostgreSQL support (needed for online database)
+psycopg2-binary==2.9.9
+
 # Password hashing (used in auth)
 Werkzeug==3.0.4
 
@@ -23,6 +26,5 @@ Flask-DebugToolbar==0.15.0         # install only in dev (add to config if neede
 
 # Production / deployment helpers (optional)
 gunicorn==23.0.0                   # WSGI server for production
-# psycopg2-binary==2.9.9             # if using PostgreSQL in production
 
 # Minimal pinned versions for reproducibility (as of late 2025 / early 2026)

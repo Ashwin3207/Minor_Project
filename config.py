@@ -20,12 +20,21 @@ class Config:
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=60)
 
     # SQLAlchemy / Database
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'sqlite:///' + os.path.join(basedir, 'tpc_portal.db')
+    # Supports both SQLite (local dev) and PostgreSQL (production)
+    DATABASE_URL = os.environ.get('DATABASE_URL')
+    if DATABASE_URL and DATABASE_URL.startswith('postgresql://'):
+        # Ensure psycopg2-binary is installed for PostgreSQL
+        SQLALCHEMY_DATABASE_URI = DATABASE_URL.replace('postgresql://', 'postgresql+psycopg2://', 1)
+    else:
+        # Default to SQLite for local development
+        SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+            'sqlite:///' + os.path.join(basedir, 'tpc_portal.db')
+    
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
         'pool_pre_ping': True,          # helps detect stale connections
         'pool_recycle': 3600,           # recycle connections every hour
+        'connect_args': {'timeout': 10} if 'sqlite' in str(SQLALCHEMY_DATABASE_URI) else {},
     }
 
     # Flask-DebugToolbar (optional - only in development)
@@ -76,8 +85,13 @@ class ProductionConfig(Config):
     # Use a strong secret key from environment
     SECRET_KEY = os.environ.get('SECRET_KEY')  # must be set in production!
 
-    # Use PostgreSQL or MySQL in production (example)
-    # SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')  # e.g. postgres://...
+    # Use PostgreSQL in production
+    # DATABASE_URL should be set by your hosting provider (Railway, Render, etc.)
+    DATABASE_URL = os.environ.get('DATABASE_URL')
+    if DATABASE_URL and DATABASE_URL.startswith('postgresql://'):
+        SQLALCHEMY_DATABASE_URI = DATABASE_URL.replace('postgresql://', 'postgresql+psycopg2://', 1)
+    else:
+        raise ValueError('DATABASE_URL environment variable must be set in production')
 
     # Session security
     SESSION_COOKIE_SECURE = True
