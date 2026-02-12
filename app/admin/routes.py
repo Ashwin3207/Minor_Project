@@ -72,7 +72,7 @@ def post_job():
             db.session.add(new_job)
             db.session.commit()
 
-            flash('Job posted successfully!', 'success')
+            flash('Job posted successfully', 'success')
             return redirect(url_for('admin.dashboard'))
 
         except ValueError as e:
