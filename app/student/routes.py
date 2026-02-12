@@ -115,90 +115,7 @@ def profile():
     return render_template('student/profile.html', profile=profile)
 
 
-@bp.route('/jobs')
-@student_required
-def jobs():
-    """List of available jobs with eligibility check"""
-    page = request.args.get('page', 1, type=int)
-    user_id = session['user_id']
 
-    profile = StudentProfile.query.filter_by(user_id=user_id).first()
-    if not profile:
-        flash('Please complete your profile before applying to jobs.', 'warning')
-        return redirect(url_for('student.profile'))
-
-    jobs_query = Job.query.filter(Job.deadline > datetime.utcnow())\
-                          .order_by(Job.created_at.desc())
-
-    pagination = jobs_query.paginate(page=page, per_page=10, error_out=False)
-
-    job_list = []
-    for job in pagination.items:
-        allowed = [b.strip().upper() for b in job.allowed_branches.split(',') if b.strip()]
-        is_eligible = (
-            profile.cgpa >= job.min_cgpa and
-            profile.branch in allowed and
-            not profile.has_backlog and
-            datetime.utcnow() < job.deadline
-        )
-        already_applied = Application.query.filter_by(
-            student_id=user_id,
-            job_id=job.id
-        ).first() is not None
-
-        job_list.append({
-            'job': job,
-            'eligible': is_eligible,
-            'applied': already_applied
-        })
-
-    return render_template('student/jobs.html',
-                           job_list=job_list,
-                           pagination=pagination,
-                           profile=profile,
-                            now=datetime.utcnow()  
-)
-
-
-@bp.route('/apply/<int:job_id>')
-@student_required
-def apply(job_id):
-    user_id = session['user_id']
-    profile = StudentProfile.query.filter_by(user_id=user_id).first()
-
-    if not profile:
-        flash('Complete your profile first.', 'warning')
-        return redirect(url_for('student.profile'))
-
-    job = Job.query.get_or_404(job_id)
-
-    if datetime.utcnow() >= job.deadline:
-        flash('Application deadline has passed.', 'danger')
-        return redirect(url_for('student.jobs'))
-
-    allowed_branches = [b.strip().upper() for b in job.allowed_branches.split(',') if b.strip()]
-
-    if (profile.cgpa < job.min_cgpa or
-        profile.branch not in allowed_branches or
-        profile.has_backlog):
-        flash('You do not meet the eligibility criteria for this job.', 'danger')
-        return redirect(url_for('student.jobs'))
-
-    existing = Application.query.filter_by(student_id=user_id, job_id=job_id).first()
-    if existing:
-        flash('You have already applied to this job.', 'info')
-        return redirect(url_for('student.jobs'))
-
-    application = Application(
-        student_id=user_id,
-        job_id=job_id,
-        status='Applied'
-    )
-    db.session.add(application)
-    db.session.commit()
-
-    flash('Application submitted successfully!', 'success')
-    return redirect(url_for('student.applications'))
 
 
 from datetime import datetime
@@ -296,12 +213,110 @@ def download_resume():
         return redirect(url_for('student.resume'))
 
 
+@bp.route('/apply', methods=['GET', 'POST'])
+@student_required
+def apply():
+    """Apply for a job"""
+    job_id = request.args.get('job_id')
+    
+    if not job_id:
+        flash('Invalid job ID.', 'danger')
+        return redirect(url_for('student.applications'))
+    
+    job = Job.query.get_or_404(job_id)
+    user_id = session['user_id']
+    
+    profile = StudentProfile.query.filter_by(user_id=user_id).first()
+    if not profile:
+        flash('Please complete your profile first.', 'warning')
+        return redirect(url_for('student.profile'))
+    
+    # Check eligibility
+    allowed_branches = [b.strip().upper() for b in (job.allowed_branches or '').split(',') if b.strip()]
+    
+    if profile.cgpa < job.min_cgpa:
+        flash(f'You do not meet the minimum CGPA requirement of {job.min_cgpa}.', 'danger')
+        return redirect(request.referrer or url_for('student.applications'))
+    
+    if allowed_branches and profile.branch not in allowed_branches:
+        flash(f'Your branch ({profile.branch}) is not eligible for this job.', 'danger')
+        return redirect(request.referrer or url_for('student.applications'))
+    
+    if profile.has_backlog:
+        flash('You cannot apply while having a backlog.', 'danger')
+        return redirect(request.referrer or url_for('student.applications'))
+    
+    if datetime.utcnow() >= job.deadline:
+        flash('Application deadline has passed.', 'danger')
+        return redirect(request.referrer or url_for('student.applications'))
+    
+    # Check if already applied
+    existing = Application.query.filter_by(student_id=user_id, job_id=job_id).first()
+    if existing:
+        flash('You have already applied to this job.', 'info')
+        return redirect(url_for('student.applications'))
+    
+    # Create application
+    application = Application(
+        student_id=user_id,
+        job_id=job_id,
+        status='Applied'
+    )
+    db.session.add(application)
+    db.session.commit()
+    
+    flash(f'Successfully applied to {job.company_name}!', 'success')
+    return redirect(url_for('student.applications'))
+
+
 @bp.route('/opportunities')
 @student_required
 def browse_opportunities():
     """Browse all opportunities grouped by type"""
+    page = request.args.get('page', 1, type=int)
+    user_id = session['user_id']
+    
+    profile = StudentProfile.query.filter_by(user_id=user_id).first()
+    if not profile:
+        flash('Please complete your profile before browsing opportunities.', 'warning')
+        return redirect(url_for('student.profile'))
+
     opportunities = Opportunity.query.order_by(Opportunity.created_at.desc()).all()
-    return render_template('student/opportunities.html', opportunities=opportunities)
+    
+    # Add eligibility and application status info
+    opp_list = []
+    for opp in opportunities:
+        eligible = True
+        already_applied = False
+        
+        # Check eligibility for Job/Internship types
+        if opp.type in ['Job', 'Internship']:
+            allowed = [b.strip().upper() for b in (opp.allowed_branches or '').split(',') if b.strip()]
+            is_deadline_valid = not opp.deadline or datetime.utcnow() < opp.deadline
+            
+            if opp.min_cgpa:
+                eligible = (profile.cgpa >= opp.min_cgpa and 
+                           (not allowed or profile.branch in allowed) and
+                           not profile.has_backlog and
+                           is_deadline_valid)
+            
+            # Check if already applied
+            already_applied = Application.query.filter_by(
+                student_id=user_id,
+                opportunity_id=opp.id
+            ).first() is not None
+        
+        opp_list.append({
+            'opportunity': opp,
+            'eligible': eligible,
+            'applied': already_applied
+        })
+    
+    return render_template('student/opportunities.html', 
+                          opportunities=opportunities,
+                          opp_list=opp_list,
+                          profile=profile,
+                          now=datetime.utcnow())
 
 
 @bp.route('/opportunity/<int:opp_id>')
@@ -312,31 +327,81 @@ def view_opportunity(opp_id):
     user_id = session['user_id']
     profile = StudentProfile.query.filter_by(user_id=user_id).first()
     
-    # For now, opportunities don't have direct application tracking
-    # (unless they're job/internship types which map to Job table)
-    already_applied = False
+    # Check eligibility for Job/Internship
+    eligible = True
+    if opp.type in ['Job', 'Internship']:
+        allowed = [b.strip().upper() for b in (opp.allowed_branches or '').split(',') if b.strip()]
+        is_deadline_valid = not opp.deadline or datetime.utcnow() < opp.deadline
+        
+        if opp.min_cgpa:
+            eligible = (profile and 
+                       profile.cgpa >= opp.min_cgpa and 
+                       (not allowed or profile.branch in allowed) and
+                       not profile.has_backlog and
+                       is_deadline_valid)
+    
+    # Check if already applied
+    already_applied = Application.query.filter_by(
+        student_id=user_id,
+        opportunity_id=opp_id
+    ).first() is not None
     
     return render_template(
         'student/opportunity_detail.html',
         opportunity=opp,
         student_profile=profile,
-        already_applied=already_applied
+        eligible=eligible,
+        already_applied=already_applied,
+        now=datetime.utcnow()
     )
 
 
 @bp.route('/opportunity/<int:opp_id>/apply', methods=['POST'])
 @student_required
 def apply_for_opportunity(opp_id):
-    """Apply for a job/internship opportunity"""
+    """Apply for any opportunity (jobs, internships, etc.)"""
     opp = Opportunity.query.get_or_404(opp_id)
     user_id = session['user_id']
     
-    # Only jobs/internships support applications for now
-    if opp.type not in ['Job', 'Internship']:
-        flash('You can only apply for jobs and internships.', 'warning')
+    profile = StudentProfile.query.filter_by(user_id=user_id).first()
+    if not profile:
+        flash('Please complete your profile first.', 'warning')
+        return redirect(url_for('student.profile'))
+    
+    # Check eligibility for Job/Internship types
+    if opp.type in ['Job', 'Internship']:
+        allowed_branches = [b.strip().upper() for b in (opp.allowed_branches or '').split(',') if b.strip()]
+        
+        if opp.deadline and datetime.utcnow() >= opp.deadline:
+            flash('Application deadline has passed.', 'danger')
+            return redirect(url_for('student.view_opportunity', opp_id=opp_id))
+        
+        if opp.min_cgpa and profile.cgpa < opp.min_cgpa:
+            flash(f'You do not meet the minimum CGPA requirement of {opp.min_cgpa}.', 'danger')
+            return redirect(url_for('student.view_opportunity', opp_id=opp_id))
+        
+        if allowed_branches and profile.branch not in allowed_branches:
+            flash(f'Your branch is not eligible for this opportunity.', 'danger')
+            return redirect(url_for('student.view_opportunity', opp_id=opp_id))
+        
+        if profile.has_backlog:
+            flash('You cannot apply while having a backlog.', 'danger')
+            return redirect(url_for('student.view_opportunity', opp_id=opp_id))
+    
+    # Check if already applied
+    existing = Application.query.filter_by(student_id=user_id, opportunity_id=opp_id).first()
+    if existing:
+        flash('You have already applied to this opportunity.', 'info')
         return redirect(url_for('student.view_opportunity', opp_id=opp_id))
     
-    # For now, opportunities don't have direct application support
-    # This feature requires additional database schema updates
-    flash('Application feature for opportunities is coming soon.', 'info')
-    return redirect(url_for('student.view_opportunity', opp_id=opp_id))
+    # Create application
+    application = Application(
+        student_id=user_id,
+        opportunity_id=opp_id,
+        status='Applied'
+    )
+    db.session.add(application)
+    db.session.commit()
+    
+    flash(f'Successfully applied to {opp.title}!', 'success')
+    return redirect(url_for('student.applications'))

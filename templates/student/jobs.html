@@ -73,10 +73,11 @@
                         </button>
 
                         {% if eligible and not applied %}
-                        <a href="{{ url_for('student.apply', job_id=job.id) }}"
-                           class="btn btn-primary btn-sm">
-                            Apply
-                        </a>
+                        <form method="POST" action="{{ url_for('student.apply', job_id=job.id) }}" style="flex-grow-1;">
+                            <button type="submit" class="btn btn-primary btn-sm w-100" onclick="return confirm('Apply to {{ job.company_name }}?')">
+                                Apply
+                            </button>
+                        </form>
                         {% endif %}
 
                     </div>

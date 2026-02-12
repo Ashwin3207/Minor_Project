@@ -92,9 +92,9 @@
             </h3>
 
             {% if current_user.role == 'Student' %}
-            <a href="{{ url_for('student.jobs') }}" 
+            <a href="{{ url_for('student.browse_opportunities') }}" 
                class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow">
-                <i class="bi bi-search me-2"></i> Browse Latest Jobs
+                <i class="bi bi-search me-2"></i> Explore Opportunities
             </a>
             {% elif current_user.role == 'Admin' %}
             <a href="{{ url_for('admin.dashboard') }}" 

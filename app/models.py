@@ -110,7 +110,8 @@ class Application(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    job_id = db.Column(db.Integer, db.ForeignKey('jobs.id'), nullable=False)
+    job_id = db.Column(db.Integer, db.ForeignKey('jobs.id'), nullable=True)
+    opportunity_id = db.Column(db.Integer, db.ForeignKey('opportunities.id'), nullable=True)
     status = db.Column(db.String(30), default='Applied', nullable=False)  # Applied, Shortlisted, Selected, Rejected
     applied_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -118,11 +119,15 @@ class Application(db.Model):
     # Relationships
     student = db.relationship('User', back_populates='applications')
     job = db.relationship('Job', back_populates='applications')
+    opportunity = db.relationship('Opportunity', foreign_keys=[opportunity_id])
 
-    # Prevent duplicate applications
+    # Prevent duplicate applications (allow both job_id and opportunity_id)
     __table_args__ = (
         db.UniqueConstraint('student_id', 'job_id', name='unique_student_job_application'),
+        db.UniqueConstraint('student_id', 'opportunity_id', name='unique_student_opportunity_application'),
     )
 
     def __repr__(self):
-        return f'<Application student={self.student_id} job={self.job_id} status={self.status}>'
+        if self.job_id:
+            return f'<Application student={self.student_id} job={self.job_id} status={self.status}>'
+        return f'<Application student={self.student_id} opportunity={self.opportunity_id} status={self.status}>'

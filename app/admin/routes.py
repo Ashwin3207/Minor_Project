@@ -25,6 +25,7 @@ def admin_required(f):
 def dashboard():
     total_students = User.query.filter_by(role='Student').count()
     total_jobs = Job.query.count()
+    total_opportunities = Opportunity.query.count()
     total_applications = Application.query.count()
     total_placed = Application.query.filter_by(status='Selected').count()
     pending_applications = Application.query.filter_by(status='Applied').count()
@@ -32,6 +33,7 @@ def dashboard():
     stats = {
         'total_students': total_students,
         'total_jobs': total_jobs,
+        'total_opportunities': total_opportunities,
         'total_applications': total_applications,
         'total_placed': total_placed,
         'pending_applications': pending_applications,
@@ -296,6 +298,52 @@ def edit_opportunity(opp_id):
             flash(f'Error updating opportunity: {str(e)}', 'danger')
 
     return render_template('admin/create_opportunity.html', opp_type=opp.type, opportunity=opp)
+
+
+@bp.route('/opportunity_applicants/<int:opp_id>')
+@admin_required
+def opportunity_applicants(opp_id):
+    """View all applicants for a specific opportunity"""
+    opp = Opportunity.query.get_or_404(opp_id)
+    page = request.args.get('page', 1, type=int)
+    status_filter = request.args.get('status', '').strip()
+
+    query = Application.query.filter_by(opportunity_id=opp_id).join(User)
+
+    if status_filter:
+        query = query.filter(Application.status == status_filter)
+
+    applications = query.order_by(Application.applied_at.desc()).paginate(page=page, per_page=15, error_out=False)
+
+    return render_template('admin/opportunity_applicants.html', opportunity=opp, applications=applications, status_filter=status_filter)
+
+
+@bp.route('/confirm_opportunity_application/<int:application_id>', methods=['POST'])
+@admin_required
+def confirm_opportunity_application(application_id):
+    """Update status of an opportunity application"""
+    try:
+        application = Application.query.get_or_404(application_id)
+        new_status = request.form.get('status', '').strip()
+
+        # Validate status
+        valid_statuses = ['Applied', 'Shortlisted', 'Selected', 'Rejected']
+        if new_status not in valid_statuses:
+            flash('Invalid status provided.', 'danger')
+            return redirect(url_for('admin.opportunity_applicants', opp_id=application.opportunity_id))
+
+        application.status = new_status
+        application.updated_at = datetime.utcnow()
+        db.session.commit()
+
+        status_message = f"Application status updated to {new_status}!"
+        flash(status_message, 'success')
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error updating application: {str(e)}', 'danger')
+
+    return redirect(url_for('admin.opportunity_applicants', opp_id=application.opportunity_id))
 
 
 @bp.route('/confirm_application/<int:application_id>', methods=['POST'])

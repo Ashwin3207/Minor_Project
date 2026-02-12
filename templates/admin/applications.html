@@ -28,13 +28,21 @@
                         <div class="col-12">
                             <article class="card shadow-sm">
                                 <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div class="d-flex justify-content-between align-items-start mb-2\">
                                         <div>
-                                            <h5 class="card-title mb-1">{{ opp.title }}</h5>
-                                            <p class="mb-0 small text-muted">Posted by {{ opp.organizer or opp.company_name or 'Admin' }} · {{ opp.date.strftime('%d %b %Y') if opp.date else 'TBA' }}</p>
+                                            <h5 class=\"card-title mb-1\">{{ opp.title }}</h5>
+                                            <p class=\"mb-0 small text-muted\">Posted by {{ opp.organizer or opp.company_name or 'Admin' }} · {{ opp.date.strftime('%d %b %Y') if opp.date else 'TBA' }}</p>
                                         </div>
-                                        <div class="text-end">
-                                            <span class="badge bg-info text-dark">{{ opp.type }}</span>
+                                        <div class=\"text-end\">
+                                            <span class=\"badge bg-info text-dark\">{{ opp.type }}</span>
+                                            <span class=\"badge bg-primary d-block mt-2\">
+                                                {% set app_count = opp.applications|length if opp.applications else 0 %}
+                                                {% if app_count > 0 %}
+                                                    {{ app_count }} Applicants
+                                                {% else %}
+                                                    No applicants
+                                                {% endif %}
+                                            </span>
                                         </div>
                                     </div>
 
@@ -73,6 +81,7 @@
 
                                     <div class="d-flex gap-2">
                                         <a href="{{ url_for('admin.view_opportunity', opp_id=opp.id) }}" class="btn btn-sm btn-outline-primary">View Post</a>
+                                        <a href="{{ url_for('admin.opportunity_applicants', opp_id=opp.id) }}" class="btn btn-sm btn-info">View Applicants</a>
                                         <a href="{{ url_for('admin.edit_opportunity', opp_id=opp.id) }}" class="btn btn-sm btn-secondary">Edit</a>
                                         <form action="{{ url_for('admin.delete_opportunity', opp_id=opp.id) }}" method="post" class="d-inline">
                                             <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this opportunity?')">Delete</button>

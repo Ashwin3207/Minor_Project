@@ -10,8 +10,8 @@ Opportunities - TPC Portal
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="mb-0">Opportunities</h1>
-        <a href="{{ url_for('student.jobs') }}" class="btn btn-outline-secondary">
-            ← Back to Jobs
+        <a href="{{ url_for('student.applications') }}" class="btn btn-outline-primary">
+            <i class="bi bi-list-check me-2"></i> My Applications
         </a>
     </div>
 
@@ -29,7 +29,7 @@ Opportunities - TPC Portal
 
         {% for t in types %}
 
-            {% set items = opportunities | selectattr('type','equalto', t) | list %}
+            {% set items = opp_list | selectattr('opportunity.type','equalto', t) | list %}
 
             {% if items %}
 
@@ -40,7 +40,7 @@ Opportunities - TPC Portal
 
                 <div class="row g-3">
 
-                    {% for opp in items %}
+                    {% for item in items %}
 
                         <div class="col-12">
 
@@ -53,56 +53,73 @@ Opportunities - TPC Portal
                                         <div>
                                             <h5 class="mb-1">
 
-                                                <a href="{{ url_for('student.view_opportunity', opp_id=opp.id) }}"
+                                                <a href="{{ url_for('student.view_opportunity', opp_id=item.opportunity.id) }}"
                                                    class="text-decoration-none">
 
-                                                    {{ opp.title }}
+                                                    {{ item.opportunity.title }}
 
                                                 </a>
                                             </h5>
 
                                             <small class="text-muted">
-                                                {{ opp.organizer or opp.company_name or 'Posted by Admin' }}
+                                                {{ item.opportunity.organizer or item.opportunity.company_name or 'Posted by Admin' }}
                                                 •
-                                                {{ opp.date.strftime('%d %b %Y') if opp.date else 'TBA' }}
+                                                {{ item.opportunity.date.strftime('%d %b %Y') if item.opportunity.date else 'TBA' }}
                                             </small>
                                         </div>
 
-                                        <span class="badge bg-primary">
-                                            {{ opp.type }}
-                                        </span>
+                                        <div>
+                                            <span class="badge bg-primary mb-2">
+                                                {{ item.opportunity.type }}
+                                            </span>
+                                            {% if item.opportunity.type in ['Job', 'Internship'] %}
+                                                {% if item.applied %}
+                                                    <span class="badge bg-success d-block">
+                                                        <i class="bi bi-check-circle me-1"></i> Applied
+                                                    </span>
+                                                {% elif item.eligible %}
+                                                    <span class="badge bg-info d-block">
+                                                        <i class="bi bi-check-circle me-1"></i> Eligible
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-danger d-block">
+                                                        <i class="bi bi-x-circle me-1"></i> Not Eligible
+                                                    </span>
+                                                {% endif %}
+                                            {% endif %}
+                                        </div>
 
                                     </div>
 
                                     <p class="mb-3 text-muted">
-                                        {{ opp.description | truncate(160) }}
+                                        {{ item.opportunity.description | truncate(160) }}
                                     </p>
 
-                                    {% if opp.type in ['Job', 'Internship'] %}
+                                    {% if item.opportunity.type in ['Job', 'Internship'] %}
 
                                         <div class="row g-2 mb-3 small">
 
                                             <div class="col-md-3">
                                                 <span class="badge bg-light text-dark w-100">
-                                                    {{ opp.ctc or 'CTC —' }}
+                                                    {{ item.opportunity.ctc or 'CTC —' }}
                                                 </span>
                                             </div>
 
                                             <div class="col-md-3">
                                                 <span class="badge bg-light text-dark w-100">
-                                                    CGPA: {{ opp.min_cgpa or '—' }}
+                                                    CGPA: {{ item.opportunity.min_cgpa or '—' }}
                                                 </span>
                                             </div>
 
                                             <div class="col-md-3">
                                                 <span class="badge bg-light text-dark w-100">
-                                                    {{ opp.allowed_branches or 'All Branches' }}
+                                                    {{ item.opportunity.allowed_branches or 'All Branches' }}
                                                 </span>
                                             </div>
 
                                             <div class="col-md-3">
                                                 <span class="badge bg-light text-dark w-100">
-                                                    {{ opp.deadline.strftime('%d %b') if opp.deadline else 'TBA' }}
+                                                    {{ item.opportunity.deadline.strftime('%d %b') if item.opportunity.deadline else 'TBA' }}
                                                 </span>
                                             </div>
 
@@ -110,12 +127,35 @@ Opportunities - TPC Portal
 
                                     {% endif %}
 
-                                    <a href="{{ url_for('student.view_opportunity', opp_id=opp.id) }}"
-                                       class="btn btn-sm btn-primary">
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ url_for('student.view_opportunity', opp_id=item.opportunity.id) }}"
+                                           class="btn btn-sm btn-outline-primary flex-grow-1">
+                                            <i class="bi bi-eye me-1"></i> View Details
+                                        </a>
 
-                                        View Details
-
-                                    </a>
+                                        {% if item.opportunity.type in ['Job', 'Internship'] %}
+                                            {% if item.applied %}
+                                                <button class="btn btn-sm btn-secondary flex-grow-1" disabled>
+                                                    <i class="bi bi-check2-circle me-1"></i> Already Applied
+                                                </button>
+                                            {% elif item.eligible %}
+                                                <form method="POST" action="{{ url_for('student.apply_for_opportunity', opp_id=item.opportunity.id) }}" class="flex-grow-1">
+                                                    <button type="submit" class="btn btn-sm btn-success w-100" onclick="return confirm('Apply to {{ item.opportunity.title }}?')">
+                                                        <i class="bi bi-send-fill me-1"></i> Apply Now
+                                                    </button>
+                                                </form>
+                                            {% else %}
+                                                <button class="btn btn-sm btn-outline-danger flex-grow-1" disabled>
+                                                    <i class="bi bi-x-circle me-1"></i> Not Eligible
+                                                </button>
+                                            {% endif %}
+                                        {% else %}
+                                            <a href="{{ url_for('student.view_opportunity', opp_id=item.opportunity.id) }}"
+                                               class="btn btn-sm btn-info flex-grow-1">
+                                                <i class="bi bi-info-circle me-1"></i> Learn More
+                                            </a>
+                                        {% endif %}
+                                    </div>
 
                                 </div>
                             </div>

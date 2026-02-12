@@ -1,13 +1,13 @@
 {% extends "base.html" %}
-{% block title %}My Job Applications - TPC Portal{% endblock %}
+{% block title %}My Applications - TPC Portal{% endblock %}
 
 {% block content %}
 
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="mb-0">My Applications</h1>
-        <a href="{{ url_for('student.jobs') }}" class="btn btn-primary">
-            <i class="bi bi-search me-2"></i> Browse More Jobs
+        <a href="{{ url_for('student.browse_opportunities') }}" class="btn btn-primary">
+            <i class="bi bi-search me-2"></i> Browse More Opportunities
         </a>
     </div>
 
@@ -24,20 +24,33 @@
                     <thead class="table-dark">
                         <tr>
                             <th>#</th>
-                            <th>Company</th>
-                            <th>Package (CTC)</th>
+                            <th>Title</th>
+                            <th>Type</th>
                             <th>Applied On</th>
                             <th>Status</th>
-                            <th>Deadline</th>
-                            <th>Details</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for app in applications.items %}
                         <tr>
                             <td>{{ loop.index + (applications.page - 1) * applications.per_page }}</td>
-                            <td class="fw-bold">{{ app.job.company_name }}</td>
-                            <td>{{ app.job.ctc }}</td>
+                            <td class="fw-bold">
+                                {% if app.job %}
+                                    {{ app.job.company_name }}
+                                {% elif app.opportunity %}
+                                    {{ app.opportunity.title }}
+                                {% else %}
+                                    Unknown
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if app.job %}
+                                    <span class="badge bg-primary">Job</span>
+                                {% elif app.opportunity %}
+                                    <span class="badge bg-info">{{ app.opportunity.type }}</span>
+                                {% endif %}
+                            </td>
                             <td>{{ app.applied_at.strftime('%d %b %Y, %I:%M %p') }}</td>
                             <td>
                                 {% if app.status == 'Applied' %}
@@ -53,23 +66,20 @@
                                 {% endif %}
                             </td>
                             <td>
-                                {% if app.job.deadline > now %}
-                                    <span class="text-success">{{ app.job.deadline.strftime('%d %b %Y') }}</span>
-                                {% else %}
-                                    <span class="text-danger">Closed</span>
+                                {% if app.opportunity %}
+                                    <a href="{{ url_for('student.view_opportunity', opp_id=app.opportunity.id) }}" 
+                                       class="btn btn-sm btn-outline-primary">View</a>
+                                {% elif app.job %}
+                                    <a href="#" class="btn btn-sm btn-outline-secondary view-job-details"
+                                       data-bs-toggle="modal"
+                                       data-bs-target="#jobModal"
+                                       data-company="{{ app.job.company_name }}"
+                                       data-desc="{{ app.job.job_description | e }}"
+                                       data-ctc="{{ app.job.ctc }}"
+                                       data-deadline="{{ app.job.deadline.strftime('%d %b %Y %I:%M %p') }}">
+                                        View
+                                    </a>
                                 {% endif %}
-                            </td>
-                            <td>
-                                <a href="#" class="btn btn-sm btn-outline-secondary view-job-details"
-                                   data-bs-toggle="modal"
-                                   data-bs-target="#jobModal"
-                                   data-company="{{ app.job.company_name }}"
-                                   data-desc="{{ app.job.job_description | e }}"
-                                   data-ctc="{{ app.job.ctc }}"
-                                   data-deadline="{{ app.job.deadline.strftime('%d %b %Y %I:%M %p') }}">
-                                    View
-                                </a>
-                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -115,8 +125,8 @@
             <i class="bi bi-briefcase"></i>
         </div>
         <h3 class="text-muted">No applications yet</h3>
-        <p class="lead text-muted mb-4">You haven't applied to any jobs so far.</p>
-        <a href="{{ url_for('student.jobs') }}" class="btn btn-lg btn-primary px-5 py-3 rounded-pill">
+        <p class="lead text-muted mb-4">You haven't applied to any opportunities so far.</p>
+        <a href="{{ url_for('student.browse_opportunities') }}" class="btn btn-lg btn-primary px-5 py-3 rounded-pill">
             <i class="bi bi-search me-2"></i> Start Applying Now
         </a>
     </div>

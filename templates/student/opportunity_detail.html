@@ -51,6 +51,38 @@
         <!-- SIDEBAR -->
         <div class="col-lg-4">
 
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">{{ opportunity.type }}</h5>
+                    
+                    {% if opportunity.type in ['Job','Internship'] %}
+                        {% if opportunity.ctc %}
+                        <p class="mb-2">
+                            <strong>CTC:</strong> {{ opportunity.ctc }}
+                        </p>
+                        {% endif %}
+                        
+                        {% if opportunity.min_cgpa %}
+                        <p class="mb-2">
+                            <strong>Min CGPA:</strong> {{ opportunity.min_cgpa }}
+                        </p>
+                        {% endif %}
+                        
+                        {% if opportunity.allowed_branches %}
+                        <p class="mb-2">
+                            <strong>Branches:</strong> {{ opportunity.allowed_branches }}
+                        </p>
+                        {% endif %}
+                        
+                        {% if opportunity.deadline %}
+                        <p class="mb-2">
+                            <strong>Deadline:</strong> {{ opportunity.deadline.strftime('%d %b %Y') }}
+                        </p>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+
             <div class="card shadow-sm">
 
                 <div class="card-body">
@@ -58,28 +90,35 @@
                     {% if opportunity.type in ['Job','Internship'] %}
 
                         {% if already_applied %}
-                            <div class="alert alert-success">
-                                Already applied
+                            <div class="alert alert-success mb-0">
+                                <i class="bi bi-check-circle me-2"></i> Already applied
+                            </div>
+
+                        {% elif not eligible %}
+                            <div class="alert alert-danger mb-0">
+                                <i class="bi bi-exclamation-circle me-2"></i> Not eligible
+                                <small class="d-block mt-2">You don't meet the eligibility criteria</small>
                             </div>
 
                         {% elif student_profile %}
                             <form method="POST"
                                   action="{{ url_for('student.apply_for_opportunity', opp_id=opportunity.id) }}">
-                                <button class="btn btn-success w-100">
-                                    Apply Now
+                                <button class="btn btn-success w-100" type="submit">
+                                    <i class="bi bi-check-circle me-2"></i> Apply Now
                                 </button>
                             </form>
 
                         {% else %}
                             <a href="{{ url_for('student.profile') }}"
                                class="btn btn-warning w-100">
-                                Complete Profile
+                                <i class="bi bi-person-circle me-2"></i> Complete Profile
                             </a>
                         {% endif %}
 
                     {% else %}
-                        <div class="alert alert-info">
-                            Informational event
+                        <div class="alert alert-info mb-0">
+                            <i class="bi bi-info-circle me-2"></i> Informational Event
+                            <small class="d-block mt-2">No application required</small>
                         </div>
                     {% endif %}
 
