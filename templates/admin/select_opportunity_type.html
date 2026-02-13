@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Create New Opportunity - TPC Portal{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Create New Opportunity</h4>
+                </div>
+                <div class="card-body p-5">
+                    <p class="text-muted mb-4">Select the type of opportunity you want to create:</p>
+                    
+                    <div class="row g-3">
+                        {% for type in types %}
+                            <div class="col-md-6 col-lg-4">
+                                <a href="{{ url_for('admin.create_opportunity', opp_type=type) }}" class="btn btn-outline-primary btn-lg w-100 h-100 d-flex flex-column align-items-center justify-content-center py-5 text-decoration-none">
+                                    {% if type == 'Job' %}
+                                        <i class="bi bi-briefcase display-6 mb-2"></i>
+                                    {% elif type == 'Internship' %}
+                                        <i class="bi bi-file-earmark-text display-6 mb-2"></i>
+                                    {% elif type == 'Session' %}
+                                        <i class="bi bi-chat-dots display-6 mb-2"></i>
+                                    {% elif type == 'Hackathon' %}
+                                        <i class="bi bi-code-square display-6 mb-2"></i>
+                                    {% elif type == 'Bootcamp' %}
+                                        <i class="bi bi-book display-6 mb-2"></i>
+                                    {% elif type == 'Seminar' %}
+                                        <i class="bi bi-megaphone display-6 mb-2"></i>
+                                    {% endif %}
+                                    <span class="fw-semibold">{{ type }}</span>
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mt-4">
+                        <a href="{{ url_for('admin.opportunities') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-2"></i> Back to Opportunities
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

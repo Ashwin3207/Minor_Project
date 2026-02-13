@@ -19,15 +19,6 @@
 
         <div class="col-xl-3 col-md-6">
             <div class="card shadow-sm border-0 h-100">
-                <div class="card-body text-center">
-                    <h5 class="card-title text-muted">Total Jobs Posted</h5>
-                    <h2 class="display-5 fw-bold text-success">{{ stats.total_jobs | default(0) }}</h2>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6">
-            <div class="card shadow-sm border-0 h-100">
                 <div class="card-body text-center">                    <h5 class=\"card-title text-muted\">Total Opportunities</h5>
                     <h2 class=\"display-5 fw-bold text-warning\">{{ stats.total_opportunities | default(0) }}</h2>
                 </div>
@@ -81,13 +72,7 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-3">
-                        <a href="{{ url_for('admin.post_job') }}" class="btn btn-lg btn-primary">
-                            <i class="bi bi-plus-circle me-2"></i> Post New Job
-                        </a>
-                        <a href="{{ url_for('admin.view_jobs') }}" class="btn btn-lg btn-outline-info">
-                            <i class="bi bi-briefcase me-2"></i> View Jobs & Applicants
-                        </a>
-                        <a href="{{ url_for('admin.opportunities') }}" class="btn btn-lg btn-outline-warning">
+                        <a href="{{ url_for('admin.opportunities') }}" class="btn btn-lg btn-primary">
                             <i class="bi bi-star me-2"></i> Manage Opportunities
                         </a>
                         <a href="{{ url_for('admin.view_students') }}" class="btn btn-lg btn-outline-primary">

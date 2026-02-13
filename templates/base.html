@@ -47,13 +47,13 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('admin.post_job') }}">
-                                    <i class="bi bi-plus-circle me-1"></i> Post Job
+                                <a class="nav-link" href="{{ url_for('admin.opportunities') }}">
+                                    <i class="bi bi-star me-1"></i> Opportunities
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('admin.view_jobs') }}">
-                                    <i class="bi bi-briefcase me-1"></i> Jobs
+                                <a class="nav-link btn ms-2 px-3" href="{{ url_for('admin.new_opportunity') }}">
+                                    <i class="bi bi-plus-circle me-1"></i> New Opportunity
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -134,11 +134,9 @@
         <div class="container">
             <p class="mb-1">
                 © {{ current_year }} Training & Placement Cell • 
-                <a href="#" class="text-white text-decoration-none">Your College Name</a>
+                <a href="#" class="text-white text-decoration-none">Government Engineering College, Munger</a>
             </p>
-            <small class="text-muted">
-                Built with Flask • Bootstrap 5 • All rights reserved.
-            </small>
+            <small> Developed under the guidance of HOD, Computer Science & Engineering Govind Kumar Jha </small>
         </div>
     </footer>
 

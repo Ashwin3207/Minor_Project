@@ -168,6 +168,14 @@ def delete_opportunity(opp_id):
     return redirect(url_for('admin.opportunities'))
 
 
+@bp.route('/new_opportunity')
+@admin_required
+def new_opportunity():
+    """Select opportunity type before creating"""
+    types = ['Job', 'Internship', 'Session', 'Hackathon', 'Bootcamp', 'Seminar']
+    return render_template('admin/select_opportunity_type.html', types=types)
+
+
 @bp.route('/create_opportunity/<opp_type>', methods=['GET', 'POST'])
 @admin_required
 def create_opportunity(opp_type):

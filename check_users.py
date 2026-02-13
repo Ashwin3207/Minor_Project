@@ -20,3 +20,6 @@ with app.app_context():
         print(f"Email: {user.email}")
         print(f"Role: {user.role}")
         print("-" * 40)
+    from app import db
+
+
