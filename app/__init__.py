@@ -60,6 +60,9 @@ def create_app(config_name='default'):
     from app.main import bp as main_bp
     flask_app.register_blueprint(main_bp)
 
+    from app.chatbot import bp as chatbot_bp
+    flask_app.register_blueprint(chatbot_bp)
+
     # Context processor: inject current_user
     @flask_app.context_processor
     def inject_user():

@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row">
+        <div class="col-lg-10 offset-lg-1">
+            <div class="card shadow-lg" style="height: 70vh; display: flex; flex-direction: column;">
+                <!-- Chat Header -->
+                <div class="card-header bg-primary text-white d-flex align-items-center">
+                    <div style="font-size: 24px; margin-right: 10px;">💬</div>
+                    <div>
+                        <h5 class="mb-0">Placement Assistant</h5>
+                        <small>Ask me about opportunities, jobs, and applications</small>
+                    </div>
+                </div>
+
+                <!-- Chat Messages Area -->
+                <div class="card-body overflow-auto" id="chatMessages" style="flex: 1; background-color: #f8f9fa;">
+                    <!-- Messages will be added here dynamically -->
+                    <div class="text-center mt-3">
+                        <p class="text-muted">👋 Hi! I'm your Placement Assistant. How can I help you today?</p>
+                    </div>
+                </div>
+
+                <!-- Suggestions -->
+                <div class="px-3 py-2" id="suggestionsContainer" style="background-color: #f0f0f0; display: none;">
+                    <small class="text-muted d-block mb-2">Suggested questions:</small>
+                    <div id="suggestionsList" class="d-flex flex-wrap gap-2">
+                        <!-- Suggestions will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Chat Input Area -->
+                <div class="card-footer bg-white border-top">
+                    <form id="chatForm" class="d-flex gap-2">
+                        <input 
+                            type="text" 
+                            id="messageInput" 
+                            class="form-control" 
+                            placeholder="Ask me anything about opportunities, jobs, applications..." 
+                            autocomplete="off"
+                        >
+                        <button type="submit" id="sendBtn" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Send
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Spinner (hidden by default) -->
+<div class="spinner-border text-primary d-none position-fixed" id="loadingSpinner" style="top: 20px; right: 20px;" role="status">
+    <span class="visually-hidden">Loading...</span>
+</div>
+
+<style>
+    .chat-message {
+        margin-bottom: 15px;
+        padding: 10px 15px;
+        border-radius: 10px;
+        max-width: 85%;
+        word-wrap: break-word;
+        animation: slideIn 0.3s ease-in-out;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .user-message {
+        background-color: #007bff;
+        color: white;
+        margin-left: auto;
+        margin-right: 0;
+        border-bottom-right-radius: 2px;
+    }
+
+    .bot-message {
+        background-color: #e9ecef;
+        color: #333;
+        margin-right: auto;
+        margin-left: 0;
+        border-bottom-left-radius: 2px;
+    }
+
+    .bot-message a {
+        color: #007bff;
+        text-decoration: underline;
+    }
+
+    .suggestion-btn {
+        background-color: white;
+        border: 1px solid #007bff;
+        color: #007bff;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+    .suggestion-btn:hover {
+        background-color: #007bff;
+        color: white;
+    }
+
+    #chatMessages {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .message-container {
+        display: flex;
+        margin-bottom: 12px;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    .user-container {
+        justify-content: flex-end;
+    }
+
+    .bot-container {
+        justify-content: flex-start;
+    }
+
+    .typing-indicator {
+        display: flex;
+        gap: 4px;
+        padding: 10px 15px;
+    }
+
+    .typing-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #999;
+        animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+        0%, 60%, 100% {
+            transform: translateY(0);
+        }
+        30% {
+            transform: translateY(-10px);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+{% endblock %}
