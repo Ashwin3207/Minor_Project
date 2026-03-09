@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+
+{% block title %}Auto-Generated Resume - Student{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid mt-5 mb-5">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-3 mb-4">
+            <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
+                <div class="card-body">
+                    <h6 class="card-title text-primary mb-3">
+                        <i class="bi bi-file-pdf me-2"></i> Resume Options
+                    </h6>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('student.resume') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-upload me-1"></i> Upload Resume
+                        </a>
+                        <button class="btn btn-primary btn-sm" onclick="window.print()">
+                            <i class="bi bi-printer me-1"></i> Print / Save PDF
+                        </button>
+                        <a href="{{ url_for('student.profile') }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-pencil me-1"></i> Edit Profile
+                        </a>
+                    </div>
+                    
+                    <hr class="my-3">
+                    
+                    <h6 class="text-muted small">Profile Status</h6>
+                    <div class="list-unstyled small">
+                        <div class="mb-2">
+                            <span class="badge bg-success">Complete</span>
+                            <span class="text-muted">Profile Data</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resume Content -->
+        <div class="col-lg-9">
+            <div class="card shadow border-0 print-container" style="max-width: 900px; margin: auto;">
+                <div class="card-body p-5" style="min-height: 1000px; background: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                    
+                    <!-- Header Section -->
+                    <div class="text-center mb-4 pb-3 border-bottom">
+                        <h1 class="mb-1" style="font-size: 28px; font-weight: bold; color: #1a1a1a;">
+                            {{ resume_data.user.username | upper }}
+                        </h1>
+                        <div class="text-muted small">
+                            <i class="bi bi-envelope me-2"></i> {{ resume_data.user.email }}
+                        </div>
+                    </div>
+
+                    <!-- Personal Summary -->
+                    <div class="mb-4">
+                        <h5 style="color: #0066cc; font-weight: bold; border-bottom: 2px solid #0066cc; padding-bottom: 8px;">
+                            <i class="bi bi-person-circle me-2"></i> PROFILE SUMMARY
+                        </h5>
+                        <p class="text-muted mt-3">
+                            Dedicated student with strong academic background and practical experience in software development. 
+                            Proficient in {{ resume_data.skills_list|join(', ') or 'multiple technologies' }}. 
+                            Seeking challenging opportunities to apply technical skills and contribute to innovative projects.
+                        </p>
+                    </div>
+
+                    <!-- Education Section -->
+                    <div class="mb-4">
+                        <h5 style="color: #0066cc; font-weight: bold; border-bottom: 2px solid #0066cc; padding-bottom: 8px;">
+                            <i class="bi bi-book me-2"></i> EDUCATION
+                        </h5>
+                        
+                        <div class="mt-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1" style="font-weight: bold;">Bachelor of Technology</h6>
+                                    <p class="text-muted small mb-2">
+                                        <strong>Branch:</strong> {{ resume_data.branch }}
+                                    </p>
+                                </div>
+                                <span class="badge bg-info">Current</span>
+                            </div>
+                            
+                            <div class="row mt-2 small text-muted">
+                                <div class="col-md-6">
+                                    <p class="mb-2">
+                                        <strong>10th Grade:</strong> {{ "%.2f"|format(resume_data.tenth_percentage) }}%
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-2">
+                                        <strong>12th Grade:</strong> {{ "%.2f"|format(resume_data.twelfth_percentage) }}%
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="row mt-2">
+                                <div class="col-md-6">
+                                    <p class="mb-0 small">
+                                        <strong>Current CGPA:</strong>
+                                        <span class="badge bg-primary">{{ "%.2f"|format(resume_data.cgpa) }}/10.0</span>
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-0 small">
+                                        <strong>Backlog Status:</strong>
+                                        {% if resume_data.has_backlog %}
+                                            <span class="badge bg-danger">Yes</span>
+                                        {% else %}
+                                            <span class="badge bg-success">Clear</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Skills Section -->
+                    {% if resume_data.skills_list %}
+                    <div class="mb-4">
+                        <h5 style="color: #0066cc; font-weight: bold; border-bottom: 2px solid #0066cc; padding-bottom: 8px;">
+                            <i class="bi bi-lightning me-2"></i> TECHNICAL SKILLS
+                        </h5>
+                        <div class="mt-3">
+                            {% for skill in resume_data.skills_list %}
+                                <span class="badge bg-light text-dark border me-2 mb-2" style="padding: 8px 12px; border: 1px solid #ddd;">
+                                    {{ skill }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Applied Opportunities Section -->
+                    {% if resume_data.company_list %}
+                    <div class="mb-4">
+                        <h5 style="color: #0066cc; font-weight: bold; border-bottom: 2px solid #0066cc; padding-bottom: 8px;">
+                            <i class="bi bi-briefcase me-2"></i> APPLIED OPPORTUNITIES
+                            <span class="badge bg-secondary ms-2">{{ resume_data.applications_count }}</span>
+                        </h5>
+                        
+                        <div class="mt-3">
+                            {% for company in resume_data.company_list %}
+                            <div class="mb-3 pb-2 border-bottom" style="border-bottom: 1px solid #e0e0e0;">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1" style="font-weight: bold;">{{ company.position }}</h6>
+                                        <p class="text-muted small mb-1">
+                                            <strong>{{ company.company }}</strong> • {{ company.type }}
+                                        </p>
+                                    </div>
+                                    <span class="badge 
+                                        {% if company.status == 'Selected' %}
+                                            bg-success
+                                        {% elif company.status == 'Rejected' %}
+                                            bg-danger
+                                        {% elif company.status == 'Pending' %}
+                                            bg-warning
+                                        {% else %}
+                                            bg-secondary
+                                        {% endif %}
+                                    ">
+                                        {{ company.status }}
+                                    </span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Achievements Section -->
+                    <div class="mb-4">
+                        <h5 style="color: #0066cc; font-weight: bold; border-bottom: 2px solid #0066cc; padding-bottom: 8px;">
+                            <i class="bi bi-trophy me-2"></i> ACHIEVEMENTS & HIGHLIGHTS
+                        </h5>
+                        <ul class="list-unstyled mt-3">
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                <span>Active participant in placement activities and recruitment drives</span>
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                <span>Strong academic performance with {{ "%.2f"|format(resume_data.cgpa) }}/10 CGPA</span>
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                <span>Applied to {{ resume_data.applications_count }} opportunities across various companies</span>
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                <span>Proficiency in {{ resume_data.skills_list|length }} technical domains</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Info Footer -->
+                    <div class="mt-5 pt-3 border-top text-center text-muted small" style="color: #999; font-size: 12px;">
+                        <p class="mb-0">
+                            This is an auto-generated resume from your profile data. 
+                            For additional details or modifications, please upload a formal resume.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Info Cards Below -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h6 class="card-title mb-3">
+                                <i class="bi bi-info-circle text-info me-2"></i> About This Resume
+                            </h6>
+                            <p class="small text-muted mb-0">
+                                This resume is automatically generated from your profile information including academic details, 
+                                skills, and applications. You can customize it by editing your profile or uploading a formal resume file.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h6 class="card-title mb-3">
+                                <i class="bi bi-lightbulb text-warning me-2"></i> Tips & Suggestions
+                            </h6>
+                            <ul class="small text-muted mb-0 ps-3">
+                                <li>Keep your profile up-to-date</li>
+                                <li>Add all relevant skills</li>
+                                <li>Upload a formal resume for better results</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        .sticky-top {
+            position: static !important;
+        }
+        
+        .card {
+            box-shadow: none !important;
+            border: none !important;
+        }
+        
+        .btn {
+            display: none !important;
+        }
+        
+        .sidebar {
+            display: none !important;
+        }
+        
+        .col-lg-9 {
+            max-width: 100%;
+        }
+        
+        .print-container {
+            box-shadow: none;
+        }
+        
+        @page {
+            margin: 0;
+            size: A4;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+        }
+    }
+</style>
+
+{% endblock %}

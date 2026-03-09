@@ -193,6 +193,55 @@ def resume():
     return render_template('student/resume.html', user=user, profile=profile, now=datetime.utcnow())
 
 
+@bp.route('/auto-resume')
+@student_required
+def auto_resume():
+    """Generate and display auto-formatted resume from profile data."""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    profile = StudentProfile.query.filter_by(user_id=user_id).first()
+    
+    if not profile:
+        flash('Please complete your profile first.', 'warning')
+        return redirect(url_for('student.profile'))
+    
+    # Parse skills if available
+    skills_list = []
+    if profile.skills:
+        skills_list = [skill.strip() for skill in profile.skills.split(',') if skill.strip()]
+    
+    # Get applications count
+    applications_count = Application.query.filter_by(student_id=user_id).count()
+    applied_companies = Application.query\
+        .filter_by(student_id=user_id)\
+        .all()
+    company_list = []
+    if applied_companies:
+        for app in applied_companies[:10]:  # Show last 10 applications
+            if app.opportunity:
+                company_list.append({
+                    'company': app.opportunity.company_name or 'Company',
+                    'position': app.opportunity.title or 'Position',
+                    'type': app.opportunity.type or 'Role',
+                    'status': app.status or 'Applied'
+                })
+    
+    resume_data = {
+        'user': user,
+        'profile': profile,
+        'skills_list': skills_list,
+        'applications_count': applications_count,
+        'company_list': company_list or [],
+        'tenth_percentage': profile.tenth_percentage or 0,
+        'twelfth_percentage': profile.twelfth_percentage or 0,
+        'cgpa': profile.cgpa or 0,
+        'branch': profile.branch or 'Not Specified',
+        'has_backlog': profile.has_backlog or False
+    }
+    
+    return render_template('student/auto_resume.html', resume_data=resume_data)
+
+
 @bp.route('/download-resume')
 @student_required
 def download_resume():

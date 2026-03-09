@@ -62,7 +62,21 @@ def create_app(config_name='default'):
 
     from app.chatbot import bp as chatbot_bp
     flask_app.register_blueprint(chatbot_bp)
-
+    
+    # Initialize chatbot provider status
+    with flask_app.app_context():
+        try:
+            import logging
+            logger = logging.getLogger(__name__)
+            gemini_key = os.environ.get('GEMINI_API_KEY') or os.environ.get('GOOGLE_API_KEY')
+            if gemini_key:
+                logger.info('Gemini API key detected - AI chatbot responses enabled')
+            else:
+                logger.warning('Gemini API key missing - chatbot will use keyword fallback when needed')
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.debug(f'Could not check chatbot provider status: {e}')
     # Context processor: inject current_user
     @flask_app.context_processor
     def inject_user():

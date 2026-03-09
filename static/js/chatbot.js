@@ -14,6 +14,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let isWaitingForResponse = false;
 
+    // Initialize AI provider badge
+    initializeAIProviderBadge();
+
     // Load suggestions on page load
     loadSuggestions();
 
@@ -133,6 +136,7 @@ document.addEventListener('DOMContentLoaded', function() {
      * Send message to chatbot API
      */
     function sendMessage(message) {
+        console.log('[AskAssistant] Sending message:', message);
         fetch('/chatbot/api/chat', {
             method: 'POST',
             headers: {
@@ -142,26 +146,120 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => {
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                return response.text().then(errorBody => {
+                    console.error('[AskAssistant] API HTTP error:', {
+                        status: response.status,
+                        body: errorBody
+                    });
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                });
             }
             return response.json();
         })
         .then(data => {
+            console.log('[AskAssistant] API response:', data);
             removeTypingIndicator();
 
-            if (data.success && data.answer) {
+            if (data.answer) {
+                console.log('[AskAssistant] Assistant answer:', {
+                    extraction_method: data.extraction_method || 'unknown',
+                    intent: data.intent || null,
+                    answer: data.answer
+                });
                 addMessage(data.answer, 'bot');
+                
+                // Show AI provider information
+                updateAIProviderBadge(data.extraction_method, data.confidence, data.intent);
+                if (!data.success) {
+                    console.warn('[AskAssistant] Backend returned success=false but provided an answer:', data);
+                    if (data.context === 'ai_unavailable') {
+                        console.error('[AskAssistant] AI provider failure details:', data.ai_error || 'No error details returned');
+                    }
+                }
             } else {
+                console.error('[AskAssistant] Invalid/unsuccessful response payload:', data);
                 addMessage('Sorry, I couldn\'t process your request. Please try again.', 'bot');
+                updateAIProviderBadge('error', 'low');
             }
 
             setWaitingState(false);
         })
         .catch(error => {
             removeTypingIndicator();
-            console.error('Error:', error);
+            console.error('[AskAssistant] Request failed:', error);
             addMessage('Sorry, there was an error communicating with the chatbot. Please try again.', 'bot');
+            updateAIProviderBadge('error', 'low');
             setWaitingState(false);
+        });
+    }
+
+    /**
+     * Update AI provider badge to show which AI was used
+     */
+    function updateAIProviderBadge(method, confidence, intent) {
+        const badge = document.getElementById('aiProviderBadge');
+        if (!badge) return;
+
+        let badgeText = '✓ ';
+        let badgeColor = '#28a745';
+        
+        if (method === 'gemini') {
+            badgeText += 'Gemini AI';
+            badgeColor = '#1a73e8';
+        } else if (method === 'mistral') {
+            badgeText += 'Mistral AI';
+            badgeColor = '#0d47a1';
+        } else if (method === 'keyword_fallback') {
+            badgeText += '📚 Pattern Match';
+            badgeColor = '#ff9800';
+        } else if (method === 'error') {
+            badgeText = '⚠️ Error';
+            badgeColor = '#dc3545';
+        } else {
+            badgeText += 'Processing';
+            badgeColor = '#017cba';
+        }
+
+        // Add confidence indicator
+        if (confidence === 'high') {
+            badgeText += ' ✓✓';
+        } else if (confidence === 'medium') {
+            badgeText += ' ✓';
+        } else if (confidence === 'low') {
+            badgeText += ' •';
+        }
+
+        badge.textContent = badgeText;
+        badge.style.backgroundColor = 'rgba(0,0,0,0.2)';
+        badge.title = `Intent: ${intent || 'unknown'} | Confidence: ${confidence || 'unknown'} | Method: ${method || 'unknown'}`;
+    }
+
+    /**
+     * Initialize AI provider badge on page load
+     */
+    function initializeAIProviderBadge() {
+        const badge = document.getElementById('aiProviderBadge');
+        if (!badge) return;
+        
+        // Check which AI provider is available
+        fetch('/chatbot/api/health', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Try to detect which provider is configured
+            // This is determined by the first query, but we can show a ready state
+            badge.textContent = '🤖 Ready to Chat';
+            badge.title = 'Click below to start chatting with the Intelligent Placement Assistant';
+            badge.style.backgroundColor = 'rgba(255,255,255,0.15)';
+        })
+        .catch(error => {
+            console.error('Error checking AI provider:', error);
+            // Still show ready state even if health check fails
+            badge.textContent = '👋 Ready';
         });
     }
 
@@ -218,3 +316,4 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+

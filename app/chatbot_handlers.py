@@ -30,6 +30,7 @@ def get_student_profile(student_id: int) -> dict:
             'student_id': student.id,
             'username': student.username,
             'cgpa': profile.cgpa,
+            
             'branch': profile.branch,
             'skills': profile.skills,
             'resume_link': profile.resume_link,

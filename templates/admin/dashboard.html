@@ -19,16 +19,18 @@
 
         <div class="col-xl-3 col-md-6">
             <div class="card shadow-sm border-0 h-100">
-                <div class="card-body text-center">                    <h5 class=\"card-title text-muted\">Total Opportunities</h5>
-                    <h2 class=\"display-5 fw-bold text-warning\">{{ stats.total_opportunities | default(0) }}</h2>
+                <div class="card-body text-center">                    <h5 class="card-title text-muted\">Total Opportunities</h5>
+                    <h2 class="display-5 fw-bold text-warning\">{{ stats.total_opportunities | default(0) }}</h2>
                 </div>
             </div>
         </div>
 
-        <div class=\"col-xl-3 col-md-6\">
-            <div class=\"card shadow-sm border-0 h-100\">
-                <div class=\"card-body text-center\">                    <h5 class="card-title text-muted">Total Applications</h5>
-                    <h2 class="display-5 fw-bold text-info">{{ stats.total_applications | default(0) }}</h2>
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">Total Applications</h5>
+                    <h2 class="display-5 fw-bold text-info mb-0">{{ stats.total_applications | default(0) }}</h2>
+                    <small class="text-muted">Across all jobs & opportunities</small>
                 </div>
             </div>
         </div>
@@ -168,3 +170,4 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 {% endblock %}
+

@@ -1,9 +1,10 @@
 """
 Chatbot blueprint providing endpoints for the chatbot API.
-Upgraded with Ollama AI-powered intent extraction.
+Integrated with Gemini API for database-aware responses.
 """
 
 import logging
+import os
 from flask import Blueprint, request, jsonify, render_template, session, current_app
 from app.chatbot_engine import ChatbotEngine
 from app.models import User
@@ -23,7 +24,13 @@ def chatbot_page():
 @bp.route('/api/chat', methods=['POST'])
 def api_chat():
     """
-    API endpoint to process user queries with Ollama AI intent extraction.
+    API endpoint to process user queries with AI-powered intent extraction.
+    Uses Gemini API (primary) with optional Mistral fallback.
+    
+    Intent extraction priority:
+    1. Gemini API (if GEMINI_API_KEY/GOOGLE_API_KEY is configured)
+    2. Mistral AI (if MISTRAL_API_KEY is configured)
+    3. Keyword-based fallback matching
     
     Expected JSON:
     {
@@ -36,7 +43,8 @@ def api_chat():
         "answer": "chatbot's response",
         "context": "intent name",
         "intent": "extracted intent",
-        "confidence": "AI confidence level",
+        "confidence": "AI confidence level (high/medium/low)",
+        "extraction_method": "gemini/mistral/keyword_fallback",
         "error": "error message if failed"
     }
     """
@@ -73,7 +81,7 @@ def api_chat():
         # Initialize chatbot engine
         engine = ChatbotEngine(session=db.session)
 
-        # Process the query with Ollama intent extraction
+        # Process the query with Gemini-based response generation
         response = engine.process_query(message, user_id=user_id)
 
         # Ensure required fields are present
@@ -157,7 +165,7 @@ def api_suggestions():
 def api_health():
     """
     Health check endpoint for monitoring.
-    Checks chatbot and Ollama service status.
+    Checks chatbot provider configuration status.
     """
     try:
         # Quick check that engine initializes
@@ -166,7 +174,8 @@ def api_health():
         return jsonify({
             'status': 'healthy',
             'chatbot': 'active',
-            'ollama': 'configured'
+            'gemini': 'configured' if engine.gemini_api_key else 'missing_api_key',
+            'mistral': 'configured' if os.getenv('MISTRAL_API_KEY') else 'not_configured'
         }), 200
     except Exception as e:
         logger.error(f"Health check error: {str(e)}")

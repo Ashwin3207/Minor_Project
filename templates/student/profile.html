@@ -145,6 +145,25 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Auto-Generated Resume Card -->
+            <div class="card mt-3 shadow-sm border-0 bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1 text-white">
+                                <i class="bi bi-magic me-2"></i> Auto-Generated Resume
+                            </h6>
+                            <p class="mb-0 text-white-50 text-sm">
+                                <i class="bi bi-info-circle me-1"></i> View your resume auto-formatted from profile data
+                            </p>
+                        </div>
+                        <a href="{{ url_for('student.auto_resume') }}" class="btn btn-sm btn-light">
+                            <i class="bi bi-file-earmark-text me-1"></i> View
+                        </a>
+                    </div>
+                </div>
+            </div>
             {% endif %}
 
         </div>

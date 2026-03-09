@@ -105,6 +105,26 @@ def view_students():
     return render_template('admin/view_students.html', students=students)
 
 
+@bp.route('/delete_student/<int:user_id>', methods=['POST'])
+@admin_required
+def delete_student(user_id):
+    """Delete a student and related data."""
+    student = User.query.get_or_404(user_id)
+    if student.role.lower() != 'student':
+        flash('Only student accounts can be deleted here.', 'warning')
+        return redirect(url_for('admin.view_students'))
+    try:
+        Application.query.filter_by(student_id=user_id).delete()
+        StudentProfile.query.filter_by(user_id=user_id).delete()
+        db.session.delete(student)
+        db.session.commit()
+        flash('Student deleted successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting student: {str(e)}', 'danger')
+    return redirect(url_for('admin.view_students'))
+
+
 @bp.route('/view_jobs')
 @admin_required
 def view_jobs():

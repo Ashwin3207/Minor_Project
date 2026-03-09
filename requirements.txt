@@ -18,6 +18,12 @@ alembic==1.13.3
 # Development tools
 python-dotenv==1.0.1               # to load .env files (useful for secrets)
 
+# HTTP client for API calls (used for Gemini and Mistral integration)
+requests==2.31.0
+
+# Mistral AI API client (optional - for cloud-based chatbot)
+mistralai==0.1.11
+
 # Optional - better debugging in development
 Flask-DebugToolbar==0.15.0         # install only in dev (add to config if needed)
 

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block content %}
 <div class="container mt-5 mb-5">
@@ -6,11 +6,16 @@
         <div class="col-lg-10 offset-lg-1">
             <div class="card shadow-lg" style="height: 70vh; display: flex; flex-direction: column;">
                 <!-- Chat Header -->
-                <div class="card-header bg-primary text-white d-flex align-items-center">
-                    <div style="font-size: 24px; margin-right: 10px;">💬</div>
-                    <div>
-                        <h5 class="mb-0">Placement Assistant</h5>
-                        <small>Ask me about opportunities, jobs, and applications</small>
+                <div class="card-header bg-primary text-white d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <div style="font-size: 24px; margin-right: 10px;">ðŸ’¬</div>
+                        <div>
+                            <h5 class="mb-0">Intelligent Placement Assistant</h5>
+                            <small>Powered by Gemini AI • Ask about opportunities, jobs, and applications</small>
+                        </div>
+                    </div>
+                    <div id="aiProviderBadge" style="font-size: 0.8rem; background-color: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 4px; white-space: nowrap;">
+                        ðŸ¤– Ready
                     </div>
                 </div>
 
@@ -18,7 +23,7 @@
                 <div class="card-body overflow-auto" id="chatMessages" style="flex: 1; background-color: #f8f9fa;">
                     <!-- Messages will be added here dynamically -->
                     <div class="text-center mt-3">
-                        <p class="text-muted">👋 Hi! I'm your Placement Assistant. How can I help you today?</p>
+                        <p class="text-muted">ðŸ‘‹ Hi! I'm your Placement Assistant. How can I help you today?</p>
                     </div>
                 </div>
 
@@ -178,3 +183,4 @@
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
 {% endblock %}
+
