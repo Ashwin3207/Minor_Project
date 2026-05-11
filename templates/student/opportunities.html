@@ -95,6 +95,78 @@ Opportunities - TPC Portal
                                         {{ item.opportunity.description | truncate(160) }}
                                     </p>
 
+                                    <!-- Smart Job Match Score -->
+                                    {% if item.match %}
+                                    <div class="card card-sm mb-3 border-0 bg-light">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <h6 class="mb-0 fw-bold">
+                                                    <i class="bi bi-graph-up me-2"></i>Your Match Score
+                                                </h6>
+                                                <span class="badge bg-{% if item.match.score >= 75 %}success{% elif item.match.score >= 50 %}warning{% else %}danger{% endif %} fs-6">
+                                                    {{ item.match.score }}%
+                                                </span>
+                                            </div>
+                                            
+                                            <!-- Progress bar -->
+                                            <div class="progress mb-2" style="height: 8px;">
+                                                <div class="progress-bar {% if item.match.score >= 75 %}bg-success{% elif item.match.score >= 50 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                                     role="progressbar" 
+                                                     style="width: {{ item.match.score }}%"></div>
+                                            </div>
+
+                                            <!-- Match details -->
+                                            <div class="small">
+                                                <div class="mb-2">
+                                                    <span class="{% if item.match.cgpa_match %}text-success{% else %}text-danger{% endif %}">
+                                                        <i class="bi bi-{% if item.match.cgpa_match %}check-circle-fill{% else %}x-circle-fill{% endif %} me-1"></i>
+                                                        CGPA: {{ profile.cgpa|round(2) }}
+                                                    </span>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <span class="{% if item.match.branch_match %}text-success{% else %}text-danger{% endif %}">
+                                                        <i class="bi bi-{% if item.match.branch_match %}check-circle-fill{% else %}x-circle-fill{% endif %} me-1"></i>
+                                                        Branch: {{ profile.branch }}
+                                                    </span>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <span class="text-info">
+                                                        <i class="bi bi-gear me-1"></i>
+                                                        Skills: {{ item.match.skills_match }}/{{ item.match.total_skills_needed }} matched
+                                                    </span>
+                                                </div>
+                                                {% if item.match.missing_skills %}
+                                                <div class="mt-2 pt-2 border-top">
+                                                    <small class="text-muted">
+                                                        <strong>To improve:</strong> 
+                                                        {% for skill in item.match.missing_skills %}
+                                                            <span class="badge bg-warning text-dark">{{ skill|truncate(15, True, '...') }}</span>
+                                                        {% endfor %}
+                                                    </small>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+
+                                            <!-- Recommendation -->
+                                            <div class="mt-3 pt-2 border-top text-center">
+                                                {% if item.match.recommendation == 'Apply' %}
+                                                    <span class="badge bg-success px-3 py-2">
+                                                        <i class="bi bi-hand-thumbs-up me-1"></i> Recommended to Apply
+                                                    </span>
+                                                {% elif item.match.recommendation == 'Prepare' %}
+                                                    <span class="badge bg-warning px-3 py-2">
+                                                        <i class="bi bi-pencil me-1"></i> Prepare & Learn Skills
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-danger px-3 py-2">
+                                                        <i class="bi bi-exclamation-circle me-1"></i> Build More Skills First
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+
                                     {% if item.opportunity.type in ['Job', 'Internship'] %}
 
                                         <div class="row g-2 mb-3 small">
@@ -118,9 +190,18 @@ Opportunities - TPC Portal
                                             </div>
 
                                             <div class="col-md-3">
-                                                <span class="badge bg-light text-dark w-100">
-                                                    {{ item.opportunity.deadline.strftime('%d %b') if item.opportunity.deadline else 'TBA' }}
-                                                </span>
+                                                {% if item.deadline_status %}
+                                                    <span class="badge bg-{{ item.deadline_status.color }} w-100" 
+                                                          title="{% if item.deadline_status.days_left is not none %}{{ item.deadline_status.days_left }} days left{% endif %}">
+                                                        <i class="bi bi-calendar-event me-1"></i>
+                                                        {{ item.deadline_status.text }} 
+                                                        {% if item.opportunity.deadline %}({{ item.opportunity.deadline.strftime('%d %b') }}){% endif %}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-light text-dark w-100">
+                                                        {{ item.opportunity.deadline.strftime('%d %b') if item.opportunity.deadline else 'TBA' }}
+                                                    </span>
+                                                {% endif %}
                                             </div>
 
                                         </div>

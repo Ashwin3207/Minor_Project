@@ -75,6 +75,9 @@
                             <th>12th %</th>
                             <th>Backlog</th>
                             <th>Skills</th>
+                            <th>Internship</th>
+                            <th>NPTEL</th>
+                            <th>FYP</th>
                             <th>Resume</th>
                         </tr>
                     </thead>
@@ -99,6 +102,27 @@
                                     <small>{{ profile.skills | truncate(60) }}</small>
                                 {% else %}
                                     <small class="text-muted">Not specified</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if profile.internship_details %}
+                                    <small>{{ profile.internship_details | truncate(50) }}</small>
+                                {% else %}
+                                    <small class="text-muted">-</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if profile.nptel %}
+                                    <small>{{ profile.nptel | truncate(50) }}</small>
+                                {% else %}
+                                    <small class="text-muted">-</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if profile.final_year_project %}
+                                    <small>{{ profile.final_year_project | truncate(50) }}</small>
+                                {% else %}
+                                    <small class="text-muted">-</small>
                                 {% endif %}
                             </td>
                             <td>

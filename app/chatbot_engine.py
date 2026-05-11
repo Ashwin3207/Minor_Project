@@ -356,11 +356,17 @@ class ChatbotEngine:
                         "  Branch : {}\n"
                         "  CGPA   : {}\n"
                         "  Skills : {}\n"
+                        "  Internship : {}\n"
+                        "  NPTEL : {}\n"
+                        "  Final Year Project : {}\n"
                         "  Resume : {}".format(
                             user.username,
                             profile.branch,
                             profile.cgpa,
                             profile.skills or "Not specified",
+                            profile.internship_details or "Not specified",
+                            profile.nptel or "Not specified",
+                            profile.final_year_project or "Not specified",
                             "Uploaded" if profile.resume_link else "Not uploaded",
                         )
                     )

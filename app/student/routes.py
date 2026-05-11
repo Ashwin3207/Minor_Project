@@ -72,6 +72,9 @@ def profile():
             skills = request.form.get('skills', '').strip()
             has_backlog = 'has_backlog' in request.form
             resume_link = request.form.get('resume_link', '').strip()
+            internship_details = request.form.get('internship_details', '').strip()
+            nptel = request.form.get('nptel', '').strip()
+            final_year_project = request.form.get('final_year_project', '').strip()
 
             if cgpa < 0 or cgpa > 10:
                 flash('CGPA must be between 0 and 10.', 'danger')
@@ -86,6 +89,9 @@ def profile():
                 profile.skills = skills
                 profile.has_backlog = has_backlog
                 profile.resume_link = resume_link
+                profile.internship_details = internship_details
+                profile.nptel = nptel
+                profile.final_year_project = final_year_project
                 profile.updated_at = datetime.utcnow()
             else:
                 # Create new
@@ -97,7 +103,10 @@ def profile():
                     branch=branch,
                     skills=skills,
                     has_backlog=has_backlog,
-                    resume_link=resume_link
+                    resume_link=resume_link,
+                    internship_details=internship_details,
+                    nptel=nptel,
+                    final_year_project=final_year_project
                 )
                 db.session.add(profile)
 
@@ -236,7 +245,10 @@ def auto_resume():
         'twelfth_percentage': profile.twelfth_percentage or 0,
         'cgpa': profile.cgpa or 0,
         'branch': profile.branch or 'Not Specified',
-        'has_backlog': profile.has_backlog or False
+        'has_backlog': profile.has_backlog or False,
+        'internship_details': profile.internship_details or '',
+        'nptel': profile.nptel or '',
+        'final_year_project': profile.final_year_project or ''
     }
     
     return render_template('student/auto_resume.html', resume_data=resume_data)
@@ -332,7 +344,7 @@ def browse_opportunities():
 
     opportunities = Opportunity.query.order_by(Opportunity.created_at.desc()).all()
     
-    # Add eligibility and application status info
+    # Add eligibility, match score, and application status info
     opp_list = []
     for opp in opportunities:
         eligible = True
@@ -355,10 +367,18 @@ def browse_opportunities():
                 opportunity_id=opp.id
             ).first() is not None
         
+        # Get deadline status with color
+        deadline_status = opp.get_deadline_status()
+        
+        # Calculate match score
+        match_data = opp.calculate_match_score(profile)
+        
         opp_list.append({
             'opportunity': opp,
             'eligible': eligible,
-            'applied': already_applied
+            'applied': already_applied,
+            'deadline_status': deadline_status,
+            'match': match_data
         })
     
     return render_template('student/opportunities.html', 
@@ -395,12 +415,20 @@ def view_opportunity(opp_id):
         opportunity_id=opp_id
     ).first() is not None
     
+    # Get deadline status with color
+    deadline_status = opp.get_deadline_status()
+    
+    # Calculate match score
+    match_data = opp.calculate_match_score(profile)
+    
     return render_template(
         'student/opportunity_detail.html',
         opportunity=opp,
         student_profile=profile,
         eligible=eligible,
         already_applied=already_applied,
+        deadline_status=deadline_status,
+        match=match_data,
         now=datetime.utcnow()
     )
 

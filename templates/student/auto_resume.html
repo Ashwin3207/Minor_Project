@@ -132,6 +132,42 @@
                     </div>
                     {% endif %}
 
+                    <!-- Internship Section -->
+                    {% if resume_data.internship_details %}
+                    <div class="mb-4">
+                        <h5 style="color: #0066cc; font-weight: bold; border-bottom: 2px solid #0066cc; padding-bottom: 8px;">
+                            <i class="bi bi-briefcase-fill me-2"></i> INTERNSHIP EXPERIENCE
+                        </h5>
+                        <div class="mt-3 small text-muted">
+                            {{ resume_data.internship_details }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- NPTEL Section -->
+                    {% if resume_data.nptel %}
+                    <div class="mb-4">
+                        <h5 style="color: #0066cc; font-weight: bold; border-bottom: 2px solid #0066cc; padding-bottom: 8px;">
+                            <i class="bi bi-mortarboard me-2"></i> NPTEL CERTIFICATIONS
+                        </h5>
+                        <div class="mt-3 small">
+                            {{ resume_data.nptel }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Final Year Project Section -->
+                    {% if resume_data.final_year_project %}
+                    <div class="mb-4">
+                        <h5 style="color: #0066cc; font-weight: bold; border-bottom: 2px solid #0066cc; padding-bottom: 8px;">
+                            <i class="bi bi-gear me-2"></i> FINAL YEAR PROJECT
+                        </h5>
+                        <div class="mt-3 small text-muted">
+                            {{ resume_data.final_year_project }}
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <!-- Applied Opportunities Section -->
                     {% if resume_data.company_list %}
                     <div class="mb-4">

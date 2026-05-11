@@ -42,6 +42,9 @@ Stores academic and skill details for each student.
 | skills | TEXT | Free-text list of student's skills |
 | has_backlog | BOOLEAN | 0 = No backlog, 1 = Has active backlog |
 | resume_link | VARCHAR(255) | URL to student's resume / LinkedIn |
+| internship_details | TEXT | Student's internship experience details |
+| nptel | TEXT | NPTEL courses completed with certificates |
+| final_year_project | TEXT | Final year project details and description |
 | updated_at | DATETIME | Last profile update timestamp |
 
 ---

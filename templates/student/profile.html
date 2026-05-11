@@ -96,6 +96,33 @@
                             <div class="form-text text-muted">Make sure the link is publicly accessible without login.</div>
                         </div>
 
+                        <!-- Professional Development Section -->
+                        <h5 class="mb-4 border-bottom pb-2 text-primary">Professional Development</h5>
+
+                        <div class="mb-4">
+                            <label for="internship_details" class="form-label fw-semibold">Internship Details</label>
+                            <textarea class="form-control form-control-lg" 
+                                      id="internship_details" name="internship_details" rows="3"
+                                      placeholder="e.g. Company name, duration, role, technologies used, key achievements...">{{ profile.internship_details if profile else '' }}</textarea>
+                            <div class="form-text text-muted">Describe your internship experience, company, duration, and key learnings.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="nptel" class="form-label fw-semibold">NPTEL Courses</label>
+                            <textarea class="form-control form-control-lg" 
+                                      id="nptel" name="nptel" rows="3"
+                                      placeholder="e.g. Introduction to Python Programming (Gold), Data Structures (Silver), Web Development...">{{ profile.nptel if profile else '' }}</textarea>
+                            <div class="form-text text-muted">List NPTEL courses you've completed with certificates (separated by commas or free text).</div>
+                        </div>
+
+                        <div class="mb-5">
+                            <label for="final_year_project" class="form-label fw-semibold">Final Year Project</label>
+                            <textarea class="form-control form-control-lg" 
+                                      id="final_year_project" name="final_year_project" rows="3"
+                                      placeholder="e.g. Project title, brief description, technologies used, features...">{{ profile.final_year_project if profile else '' }}</textarea>
+                            <div class="form-text text-muted">Describe your FYP - title, objectives, technologies, and outcomes.</div>
+                        </div>
+
                         <!-- Submit -->
                         <div class="d-grid mt-5">
                             <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm">
@@ -145,6 +172,40 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Professional Development Cards -->
+            {% if profile.internship_details %}
+            <div class="card mt-3 shadow-sm border-0 border-start border-primary">
+                <div class="card-body">
+                    <h6 class="mb-2">
+                        <i class="bi bi-briefcase-fill text-primary me-2"></i> Internship Experience
+                    </h6>
+                    <p class="mb-0 text-muted small">{{ profile.internship_details | truncate(150) }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if profile.nptel %}
+            <div class="card mt-2 shadow-sm border-0 border-start border-info">
+                <div class="card-body">
+                    <h6 class="mb-2">
+                        <i class="bi bi-mortarboard text-info me-2"></i> NPTEL Certifications
+                    </h6>
+                    <p class="mb-0 text-muted small">{{ profile.nptel | truncate(150) }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if profile.final_year_project %}
+            <div class="card mt-2 shadow-sm border-0 border-start border-success">
+                <div class="card-body">
+                    <h6 class="mb-2">
+                        <i class="bi bi-gear text-success me-2"></i> Final Year Project
+                    </h6>
+                    <p class="mb-0 text-muted small">{{ profile.final_year_project | truncate(150) }}</p>
+                </div>
+            </div>
+            {% endif %}
 
             <!-- Auto-Generated Resume Card -->
             <div class="card mt-3 shadow-sm border-0 bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">

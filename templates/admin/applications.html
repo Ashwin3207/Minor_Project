@@ -60,7 +60,15 @@
                                             <strong>Branches:</strong> {{ opp.allowed_branches or '—' }}
                                         </div>
                                         <div class="col-6">
-                                            <strong>Deadline:</strong> {{ opp.deadline.strftime('%d %b %Y') if opp.deadline else 'TBA' }}
+                                            {% if deadline_statuses and opp.id in deadline_statuses %}
+                                                {% set status = deadline_statuses[opp.id] %}
+                                                <span class="badge bg-{{ status.color }}" 
+                                                      title="{% if status.days_left is not none %}{{ status.days_left }} days left{% endif %}">
+                                                    {{ status.text }} - {{ opp.deadline.strftime('%d %b %Y') if opp.deadline else 'TBA' }}
+                                                </span>
+                                            {% else %}
+                                                <strong>Deadline:</strong> {{ opp.deadline.strftime('%d %b %Y') if opp.deadline else 'TBA' }}
+                                            {% endif %}
                                         </div>
                                     </div>
                                     {% endif %}

@@ -34,6 +34,9 @@ def get_student_profile(student_id: int) -> dict:
             'branch': profile.branch,
             'skills': profile.skills,
             'resume_link': profile.resume_link,
+            'internship_details': profile.internship_details,
+            'nptel': profile.nptel,
+            'final_year_project': profile.final_year_project,
         }
     }
 

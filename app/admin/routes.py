@@ -161,9 +161,16 @@ def opportunities():
     page = request.args.get('page', 1, type=int)
     query = Opportunity.query.order_by(Opportunity.created_at.desc())
     opps = query.paginate(page=page, per_page=15, error_out=False)
+    
+    # Create a dictionary mapping opportunity IDs to their deadline status
+    deadline_statuses = {}
+    for opp in opps.items:
+        deadline_statuses[opp.id] = opp.get_deadline_status()
 
     # Render the admin applications template which now expects `opportunities`
-    return render_template('admin/applications.html', opportunities=opps.items)
+    return render_template('admin/applications.html', 
+                          opportunities=opps.items,
+                          deadline_statuses=deadline_statuses)
 
 
 @bp.route('/opportunity/<int:opp_id>')
@@ -423,7 +430,7 @@ def export_students():
     # Header
     writer.writerow([
         'Username', 'Email', '10th %', '12th %', 'CGPA', 'Branch',
-        'Skills', 'Has Backlog', 'Resume Link', 'Last Updated'
+        'Skills', 'Has Backlog', 'Resume Link', 'Internship Details', 'NPTEL', 'Final Year Project', 'Last Updated'
     ])
 
     for profile in students:
@@ -438,6 +445,9 @@ def export_students():
             profile.skills or '',
             'Yes' if profile.has_backlog else 'No',
             profile.resume_link or '',
+            profile.internship_details or '',
+            profile.nptel or '',
+            profile.final_year_project or '',
             profile.updated_at.strftime('%Y-%m-%d %H:%M') if profile.updated_at else ''
         ])
 

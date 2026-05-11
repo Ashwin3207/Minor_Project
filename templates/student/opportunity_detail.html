@@ -75,13 +75,131 @@
                         {% endif %}
                         
                         {% if opportunity.deadline %}
-                        <p class="mb-2">
-                            <strong>Deadline:</strong> {{ opportunity.deadline.strftime('%d %b %Y') }}
+                        <p class="mb-3">
+                            <strong>Deadline:</strong> 
+                            <br>
+                            {% if deadline_status %}
+                                <span class="badge bg-{{ deadline_status.color }} mt-2 p-2">
+                                    <i class="bi bi-calendar-event me-1"></i>
+                                    {{ deadline_status.text }}: {{ opportunity.deadline.strftime('%d %b %Y') }}
+                                    {% if deadline_status.days_left is not none and deadline_status.days_left > 0 %}
+                                        <br>
+                                        <small>({{ deadline_status.days_left }} days left)</small>
+                                    {% endif %}
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary mt-2 p-2">{{ opportunity.deadline.strftime('%d %b %Y') }}</span>
+                            {% endif %}
                         </p>
                         {% endif %}
                     {% endif %}
                 </div>
             </div>
+
+            <!-- Smart Job Match Score Card -->
+            {% if match %}
+            <div class="card shadow-sm mb-4 border-2 border-info">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="bi bi-graph-up me-2 text-info"></i>
+                        Your Match Score
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Large Score Display -->
+                    <div class="text-center mb-4">
+                        <div class="display-4 fw-bold {% if match.score >= 75 %}text-success{% elif match.score >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                            {{ match.score }}%
+                        </div>
+                        <p class="text-muted mb-3">Compatibility Score</p>
+                        
+                        <!-- Progress bar -->
+                        <div class="progress" style="height: 12px;">
+                            <div class="progress-bar {% if match.score >= 75 %}bg-success{% elif match.score >= 50 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                 role="progressbar" 
+                                 style="width: {{ match.score }}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Match Details -->
+                    <div class="small mb-3">
+                        <div class="mb-2 pb-2 border-bottom">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>CGPA Match</span>
+                                <span class="{% if match.cgpa_match %}text-success fw-bold{% else %}text-danger{% endif %}">
+                                    <i class="bi bi-{% if match.cgpa_match %}check-circle-fill{% else %}x-circle-fill{% endif %}"></i>
+                                    {{ student_profile.cgpa|round(2) if student_profile else 'N/A' }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="mb-2 pb-2 border-bottom">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>Branch Match</span>
+                                <span class="{% if match.branch_match %}text-success fw-bold{% else %}text-danger{% endif %}">
+                                    <i class="bi bi-{% if match.branch_match %}check-circle-fill{% else %}x-circle-fill{% endif %}"></i>
+                                    {{ student_profile.branch if student_profile else 'N/A' }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="mb-2 pb-2 border-bottom">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>Skills Matched</span>
+                                <span class="badge bg-info">{{ match.skills_match }}/{{ match.total_skills_needed }}</span>
+                            </div>
+                        </div>
+
+                        {% if student_profile and student_profile.internship_details and student_profile.internship_details.strip() %}
+                        <div class="mb-2 pb-2 border-bottom">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>Internship Experience</span>
+                                <span class="text-success fw-bold">
+                                    <i class="bi bi-check-circle-fill"></i> Yes
+                                </span>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if student_profile and student_profile.final_year_project and student_profile.final_year_project.strip() %}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>Final Year Project</span>
+                                <span class="text-success fw-bold">
+                                    <i class="bi bi-check-circle-fill"></i> Yes
+                                </span>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Missing Skills -->
+                    {% if match.missing_skills %}
+                    <div class="bg-light p-3 rounded mb-3 small">
+                        <strong class="d-block mb-2">To Improve Match:</strong>
+                        <div>
+                            {% for skill in match.missing_skills %}
+                                <span class="badge bg-warning text-dark me-2 mb-1">{{ skill|truncate(15, True, '...') }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Recommendation -->
+                    <div class="alert {% if match.recommendation == 'Apply' %}alert-success{% elif match.recommendation == 'Prepare' %}alert-warning{% else %}alert-danger{% endif %} mb-0">
+                        <strong>
+                            {% if match.recommendation == 'Apply' %}
+                                <i class="bi bi-hand-thumbs-up me-2"></i>Recommended to Apply
+                            {% elif match.recommendation == 'Prepare' %}
+                                <i class="bi bi-pencil me-2"></i>Build Skills & Apply Later
+                            {% else %}
+                                <i class="bi bi-exclamation-circle me-2"></i>Focus on Skill Development
+                            {% endif %}
+                        </strong>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
 
             <div class="card shadow-sm">
 
