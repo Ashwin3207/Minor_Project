@@ -7,7 +7,7 @@
 <div class="container-fluid mt-5 mb-5">
     <div class="row">
         <!-- Sidebar -->
-        <div class="col-lg-3 mb-4">
+        <div class="col-lg-3 mb-4 no-print">
             <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
                 <div class="card-body">
                     <h6 class="card-title text-primary mb-3">
@@ -207,7 +207,7 @@
             </div>
 
             <!-- Info Cards Below -->
-            <div class="row mt-4">
+            <div class="row mt-4 no-print">
                 <div class="col-md-6">
                     <div class="card border-0 shadow-sm">
                         <div class="card-body">
@@ -243,41 +243,53 @@
 
 <style>
     @media print {
-        .sticky-top {
-            position: static !important;
+        @page {
+            size: A4;
+            margin: 12mm;
         }
-        
-        .card {
-            box-shadow: none !important;
+
+        html,
+        body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #fff !important;
+        }
+
+        body * {
+            visibility: hidden !important;
+        }
+
+        .print-container,
+        .print-container * {
+            visibility: visible !important;
+        }
+
+        .print-container {
+            position: absolute !important;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
             border: none !important;
+            box-shadow: none !important;
+            background: #fff !important;
         }
-        
+
+        .print-container .card-body {
+            min-height: auto !important;
+            padding: 0 !important;
+        }
+
+        nav,
+        footer,
+        .no-print,
+        .alert,
         .btn {
             display: none !important;
-        }
-        
-        .sidebar {
-            display: none !important;
-        }
-        
-        .col-lg-9 {
-            max-width: 100%;
-        }
-        
-        .print-container {
-            box-shadow: none;
-        }
-        
-        @page {
-            margin: 0;
-            size: A4;
-        }
-        
-        body {
-            margin: 0;
-            padding: 0;
         }
     }
 </style>
 
 {% endblock %}
+

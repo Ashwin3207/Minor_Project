@@ -3,7 +3,7 @@ from functools import wraps
 from datetime import datetime
 import csv
 import os
-from io import StringIO
+from io import StringIO, BytesIO
 
 from app import db
 from app.models import Job, StudentProfile, User, Application, Opportunity
@@ -404,7 +404,18 @@ def confirm_application(application_id):
 @bp.route('/export_students')
 @admin_required
 def export_students():
-    students = StudentProfile.query.join(User).filter(User.role == 'Student').all()
+    branch_filter = request.args.get('branch', '').strip()
+    min_cgpa_filter = request.args.get('min_cgpa', type=float)
+
+    query = StudentProfile.query.join(User).filter(User.role == 'Student')
+
+    if branch_filter:
+        query = query.filter(StudentProfile.branch.ilike(f'%{branch_filter}%'))
+
+    if min_cgpa_filter is not None:
+        query = query.filter(StudentProfile.cgpa >= min_cgpa_filter)
+
+    students = query.order_by(StudentProfile.cgpa.desc()).all()
 
     output = StringIO()
     writer = csv.writer(output)
@@ -430,10 +441,11 @@ def export_students():
             profile.updated_at.strftime('%Y-%m-%d %H:%M') if profile.updated_at else ''
         ])
 
-    output.seek(0)
+    csv_bytes = BytesIO(output.getvalue().encode('utf-8-sig'))
+    csv_bytes.seek(0)
 
     return send_file(
-        output,
+        csv_bytes,
         mimetype='text/csv',
         as_attachment=True,
         download_name=f'students_export_{datetime.now().strftime("%Y%m%d_%H%M")}.csv'
