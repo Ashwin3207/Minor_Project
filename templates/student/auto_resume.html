@@ -46,7 +46,7 @@
                     <!-- Header Section -->
                     <div class="text-center mb-4 pb-3 border-bottom">
                         <h1 class="mb-1" style="font-size: 28px; font-weight: bold; color: #1a1a1a;">
-                            {{ resume_data.user.username | upper }}
+                            {{ resume_data.user.full_name | upper if resume_data.user.full_name else resume_data.user.username | upper }}
                         </h1>
                         <div class="text-muted small">
                             <i class="bi bi-envelope me-2"></i> {{ resume_data.user.email }}
@@ -138,8 +138,8 @@
                         <h5 style="color: #0066cc; font-weight: bold; border-bottom: 2px solid #0066cc; padding-bottom: 8px;">
                             <i class="bi bi-briefcase-fill me-2"></i> INTERNSHIP EXPERIENCE
                         </h5>
-                        <div class="mt-3 small text-muted">
-                            {{ resume_data.internship_details }}
+                        <div class="mt-3 small text-muted" style="line-height: 1.6;">
+                            {{ resume_data.internship_details | replace('#', '') | replace('@', '') }}
                         </div>
                     </div>
                     {% endif %}
@@ -148,10 +148,17 @@
                     {% if resume_data.nptel %}
                     <div class="mb-4">
                         <h5 style="color: #0066cc; font-weight: bold; border-bottom: 2px solid #0066cc; padding-bottom: 8px;">
-                            <i class="bi bi-mortarboard me-2"></i> NPTEL CERTIFICATIONS
+                            <i class="bi bi-mortarboard me-2"></i> CERTIFICATIONS & COURSES
                         </h5>
-                        <div class="mt-3 small">
-                            {{ resume_data.nptel }}
+                        <div class="mt-3">
+                            {% set nptel_items = resume_data.nptel.split(',') %}
+                            {% for item in nptel_items %}
+                                {% if item.strip() %}
+                                    <span class="badge bg-info text-dark me-2 mb-2" style="padding: 6px 10px;">
+                                        {{ item.strip() | replace('#', '') | replace('@', '') }}
+                                    </span>
+                                {% endif %}
+                            {% endfor %}
                         </div>
                     </div>
                     {% endif %}
@@ -162,8 +169,8 @@
                         <h5 style="color: #0066cc; font-weight: bold; border-bottom: 2px solid #0066cc; padding-bottom: 8px;">
                             <i class="bi bi-gear me-2"></i> FINAL YEAR PROJECT
                         </h5>
-                        <div class="mt-3 small text-muted">
-                            {{ resume_data.final_year_project }}
+                        <div class="mt-3 small text-muted" style="line-height: 1.6;">
+                            {{ resume_data.final_year_project | replace('#', '') | replace('@', '') }}
                         </div>
                     </div>
                     {% endif %}

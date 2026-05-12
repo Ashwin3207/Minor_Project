@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Create Corporate Account - TPO Panel{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="bi bi-briefcase me-2"></i>Create Corporate Account</h4>
+                </div>
+                <div class="card-body p-5">
+                    <form method="POST" novalidate>
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Temporary Access:</strong> Set the duration in days for company recruitment access.
+                        </div>
+
+                        <!-- Company Info Section -->
+                        <h5 class="mb-3 text-primary"><i class="bi bi-building me-2"></i>Company Information</h5>
+
+                        <div class="mb-3">
+                            <label for="company_name" class="form-label fw-semibold">Company Name *</label>
+                            <input type="text" class="form-control" id="company_name" name="company_name" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="company_website" class="form-label fw-semibold">Company Website</label>
+                            <input type="url" class="form-control" id="company_website" name="company_website" placeholder="https://example.com">
+                        </div>
+
+                        <!-- Contact Info Section -->
+                        <h5 class="mb-3 text-primary"><i class="bi bi-person-lines-fill me-2"></i>Contact Information</h5>
+
+                        <div class="mb-3">
+                            <label for="contact_person" class="form-label fw-semibold">Contact Person *</label>
+                            <input type="text" class="form-control" id="contact_person" name="contact_person" required>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="company_email" class="form-label fw-semibold">Company Email *</label>
+                                <input type="email" class="form-control" id="company_email" name="email" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label fw-semibold">Phone Number</label>
+                                <input type="tel" class="form-control" id="phone" name="phone">
+                            </div>
+                        </div>
+
+                        <!-- Login Credentials -->
+                        <h5 class="mb-3 text-primary"><i class="bi bi-key me-2"></i>Login Credentials</h5>
+
+                        <div class="mb-3">
+                            <label for="username" class="form-label fw-semibold">Username *</label>
+                            <input type="text" class="form-control" id="username" name="username" required pattern="[a-zA-Z0-9_]{3,50}">
+                            <small class="text-muted">3-50 characters, alphanumeric and underscore</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label fw-semibold">Password *</label>
+                            <input type="password" class="form-control" id="password" name="password" required minlength="6">
+                            <small class="text-muted">Minimum 6 characters</small>
+                        </div>
+
+                        <!-- Access Duration -->
+                        <h5 class="mb-3 text-primary"><i class="bi bi-calendar me-2"></i>Access Duration</h5>
+
+                        <div class="mb-4">
+                            <label for="access_days" class="form-label fw-semibold">Number of Days *</label>
+                            <input type="number" class="form-control" id="access_days" name="access_days" min="1" max="365" required>
+                            <small class="text-muted">Between 1 and 365 days</small>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-grid gap-2 d-sm-flex">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-check-circle me-2"></i>Create Account
+                            </button>
+                            <a href="{{ url_for('tpo.dashboard') }}" class="btn btn-outline-secondary btn-lg">
+                                <i class="bi bi-x-circle me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -7,16 +7,7 @@ from werkzeug.utils import secure_filename
 from app import db
 from app.models import StudentProfile, Job, Application, User, Opportunity
 from app.student import bp
-
-
-def student_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session or session.get('role') != 'Student':
-            flash('This area is only for students. Please log in.', 'warning')
-            return redirect(url_for('auth.login'))
-        return f(*args, **kwargs)
-    return decorated_function
+from app.auth.decorators import student_required
 
 
 def allowed_file(filename):
@@ -61,10 +52,12 @@ def save_resume(file, user_id):
 @student_required
 def profile():
     user_id = session['user_id']
+    user = User.query.get(user_id)
     profile = StudentProfile.query.filter_by(user_id=user_id).first()
 
     if request.method == 'POST':
         try:
+            full_name = request.form.get('full_name', '').strip()
             tenth = float(request.form.get('tenth_percentage', 0))
             twelfth = float(request.form.get('twelfth_percentage', 0))
             cgpa = float(request.form.get('cgpa', 0))
@@ -79,6 +72,11 @@ def profile():
             if cgpa < 0 or cgpa > 10:
                 flash('CGPA must be between 0 and 10.', 'danger')
                 return redirect(url_for('student.profile'))
+
+            # Update user's full name
+            if full_name:
+                user.full_name = full_name
+                db.session.add(user)
 
             if profile:
                 # Update existing
@@ -121,7 +119,7 @@ def profile():
 
         return redirect(url_for('student.profile'))
 
-    return render_template('student/profile.html', profile=profile)
+    return render_template('student/profile.html', profile=profile, user=user)
 
 
 

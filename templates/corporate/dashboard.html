@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Corporate Dashboard - TPC Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-9">
+            <h1 class="mb-0"><i class="bi bi-briefcase me-2"></i>{{ stats.company_name }}</h1>
+            <p class="text-muted">Recruitment Dashboard</p>
+        </div>
+        <div class="col-md-3 text-end">
+            <div class="alert alert-info mb-0 py-2">
+                <small><i class="bi bi-calendar-check me-2"></i>Access expires in <strong>{{ stats.days_left }}</strong> days</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <h6 class="text-muted small">Job Postings</h6>
+                    <h2 class="mb-1">{{ stats.total_posted }}</h2>
+                    <small class="text-primary">Active</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <h6 class="text-muted small">Applications</h6>
+                    <h2 class="mb-1">{{ stats.total_applications }}</h2>
+                    <small class="text-info">Received</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <h6 class="text-muted small">Selected</h6>
+                    <h2 class="mb-1 text-success">{{ stats.selected_candidates }}</h2>
+                    <small class="text-muted">Candidates</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <h6 class="text-muted small">Access Valid Until</h6>
+                    <h4 class="mb-0">{{ stats.access_expires }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <a href="{{ url_for('corporate.post_opportunity') }}" class="btn btn-success me-2">
+                <i class="bi bi-plus-circle me-2"></i>Post New Job
+            </a>
+            <a href="{{ url_for('corporate.view_opportunities') }}" class="btn btn-primary me-2">
+                <i class="bi bi-list me-2"></i>View Postings
+            </a>
+            <a href="{{ url_for('corporate.access_info') }}" class="btn btn-info">
+                <i class="bi bi-info-circle me-2"></i>Access Info
+            </a>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

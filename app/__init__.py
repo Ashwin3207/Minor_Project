@@ -63,20 +63,31 @@ def create_app(config_name='default'):
     from app.chatbot import bp as chatbot_bp
     flask_app.register_blueprint(chatbot_bp)
     
+    # Register new role-based blueprints
+    from app.tpo import bp as tpo_bp
+    flask_app.register_blueprint(tpo_bp)
+    
+    from app.hod import bp as hod_bp
+    flask_app.register_blueprint(hod_bp)
+    
+    from app.principal import bp as principal_bp
+    flask_app.register_blueprint(principal_bp)
+    
+    from app.corporate import bp as corporate_bp
+    flask_app.register_blueprint(corporate_bp)
+    
     # Initialize chatbot provider status
     with flask_app.app_context():
         try:
             import logging
             logger = logging.getLogger(__name__)
-            gemini_key = os.environ.get('GEMINI_API_KEY') or os.environ.get('GOOGLE_API_KEY')
-            if gemini_key:
-                logger.info('Gemini API key detected - AI chatbot responses enabled')
-            else:
-                logger.warning('Gemini API key missing - chatbot will use keyword fallback when needed')
+            logger.info('Chatbot using pure keyword-based intelligent routing system')
+            logger.info('No external AI services required - 25+ specialized handlers for database queries')
+            logger.info('Chatbot ready - Keyword-based, database-aware, instant responses')
         except Exception as e:
             import logging
             logger = logging.getLogger(__name__)
-            logger.debug(f'Could not check chatbot provider status: {e}')
+            logger.debug(f'Could not initialize chatbot provider status: {e}')
     # Context processor: inject current_user
     @flask_app.context_processor
     def inject_user():

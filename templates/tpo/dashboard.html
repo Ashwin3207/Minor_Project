@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}TPO Dashboard - TPC Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1 class="mb-0"><i class="bi bi-speedometer2 me-2"></i>TPO Dashboard</h1>
+            <p class="text-muted">Training & Placement Officer Control Panel</p>
+        </div>
+    </div>
+
+    <!-- Statistics Row -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h6 class="card-title text-muted text-uppercase small">Total Students</h6>
+                    <h2 class="mb-0">{{ stats.total_students }}</h2>
+                    <small class="text-success"><i class="bi bi-arrow-up"></i> Registered</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h6 class="card-title text-muted text-uppercase small">Verified Students</h6>
+                    <h2 class="mb-0">{{ stats.verified_students }}</h2>
+                    <small class="text-info"><i class="bi bi-check-circle"></i> Email Verified</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h6 class="card-title text-muted text-uppercase small">Pending Approvals</h6>
+                    <h2 class="mb-0 text-warning">{{ stats.pending_approvals }}</h2>
+                    <small class="text-muted"><i class="bi bi-hourglass-split"></i> Awaiting HOD approval</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h6 class="card-title text-muted text-uppercase small">Active Corporates</h6>
+                    <h2 class="mb-0 text-success">{{ stats.active_corporates }}</h2>
+                    <small class="text-primary"><i class="bi bi-briefcase"></i> Companies</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-lightning-fill me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{{ url_for('tpo.approve_students') }}" class="btn btn-outline-primary me-2 mb-2">
+                        <i class="bi bi-check-lg me-2"></i>Approve Students
+                    </a>
+                    <a href="{{ url_for('tpo.create_corporate') }}" class="btn btn-outline-success me-2 mb-2">
+                        <i class="bi bi-plus-circle me-2"></i>Create Corporate Account
+                    </a>
+                    <a href="{{ url_for('tpo.manage_corporates') }}" class="btn btn-outline-info me-2 mb-2">
+                        <i class="bi bi-briefcase me-2"></i>Manage Corporates
+                    </a>
+                    <a href="{{ url_for('tpo.view_students_by_department') }}" class="btn btn-outline-secondary mb-2">
+                        <i class="bi bi-diagram-2 me-2"></i>View by Department
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Verifications -->
+    {% if pending_verifications %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Pending Student Verifications</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Department</th>
+                                    <th>Verified At</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ver in pending_verifications[:5] %}
+                                <tr>
+                                    <td>{{ ver.user.username }}</td>
+                                    <td>{{ ver.college_email }}</td>
+                                    <td>{{ ver.department }}</td>
+                                    <td><small>{{ ver.verified_at.strftime('%Y-%m-%d') if ver.verified_at else 'N/A' }}</small></td>
+                                    <td>
+                                        <a href="{{ url_for('tpo.approve_students') }}" class="btn btn-sm btn-success">Approve</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

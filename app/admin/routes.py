@@ -8,16 +8,7 @@ from io import StringIO, BytesIO
 from app import db
 from app.models import Job, StudentProfile, User, Application, Opportunity
 from app.admin import bp
-
-
-def admin_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session or session.get('role') != 'Admin':
-            flash('You must be an admin to access this page.', 'danger')
-            return redirect(url_for('auth.login'))
-        return f(*args, **kwargs)
-    return decorated_function
+from app.auth.decorators import admin_required, role_required
 
 
 @bp.route('/dashboard')

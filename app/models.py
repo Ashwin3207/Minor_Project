@@ -11,14 +11,20 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False, index=True)
+    full_name = db.Column(db.String(100))
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password = db.Column(db.String(255), nullable=False)  # hashed
-    role = db.Column(db.String(20), nullable=False)       # 'Admin' or 'Student'
+    role = db.Column(db.String(20), nullable=False)  # Student, HOD, Principal, Corporate, TPO, Admin
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
     student_profile = db.relationship('StudentProfile', back_populates='user', uselist=False, cascade='all, delete-orphan')
     applications = db.relationship('Application', back_populates='student', lazy='dynamic')
+    student_verification = db.relationship('StudentVerification', back_populates='user', uselist=False, cascade='all, delete-orphan')
+    corporate_profile = db.relationship('CorporateProfile', back_populates='user', uselist=False, cascade='all, delete-orphan')
+    corporate_access_tokens = db.relationship('CorporateAccessToken', back_populates='created_by', lazy='dynamic')
 
     def __repr__(self):
         return f'<User {self.username} ({self.role})>'
@@ -200,11 +206,31 @@ class Opportunity(db.Model):
             score += 15
         
         # 3. Skills Match (40 points) - Check overlap
-        job_reqs = set(str(self.get_requirements_list()).lower().split())
-        student_skills = set(str(student_profile.skills).lower().split())
+        # Properly parse job requirements as list of skills
+        job_reqs = set(skill.strip().lower() for skill in self.get_requirements_list() if skill.strip())
         
-        matched_skills = job_reqs & student_skills
-        missing_skills = job_reqs - student_skills
+        # Properly parse student skills (comma-separated)
+        # Clean up: strip whitespace, punctuation, and normalize
+        if student_profile.skills:
+            skills_text = student_profile.skills.strip().rstrip('.,;')  # Remove trailing punctuation
+            student_skills_raw = set(
+                skill.strip().lower() 
+                for skill in skills_text.split(',') 
+                if skill.strip()
+            )
+        else:
+            student_skills_raw = set()
+        
+        # Smart matching: check if any job requirement contains or is contained in student skill
+        matched_skills = set()
+        for job_req in job_reqs:
+            for student_skill in student_skills_raw:
+                # Check for exact match or substring match (case-insensitive)
+                if job_req == student_skill or student_skill in job_req or job_req in student_skill:
+                    matched_skills.add(job_req)
+                    break
+        
+        missing_skills = job_reqs - matched_skills
         
         skills_coverage = len(matched_skills) / max(len(job_reqs), 1) if job_reqs else 0
         score += int(skills_coverage * 40)
@@ -270,3 +296,128 @@ class Application(db.Model):
         if self.job_id:
             return f'<Application student={self.student_id} job={self.job_id} status={self.status}>'
         return f'<Application student={self.student_id} opportunity={self.opportunity_id} status={self.status}>'
+
+
+class StudentVerification(db.Model):
+    """
+    Stores student verification details.
+    Students must be verified before their accounts are fully activated.
+    """
+    __tablename__ = 'student_verifications'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique=True, nullable=False)
+    
+    # Enrollment details
+    enrollment_number = db.Column(db.String(50), unique=True, nullable=False, index=True)
+    college_email = db.Column(db.String(120), index=True)  # e.g., student@college.edu
+    semester = db.Column(db.Integer)  # 1-8
+    department = db.Column(db.String(50))  # CSE, ECE, MECH, etc.
+    
+    # Verification status
+    is_verified = db.Column(db.Boolean, default=False, nullable=False)
+    verification_code = db.Column(db.String(100))  # OTP or verification token
+    verification_sent_at = db.Column(db.DateTime)
+    verified_at = db.Column(db.DateTime)
+    
+    # Approval status (by HOD/Admin)
+    is_approved = db.Column(db.Boolean, default=False, nullable=False)
+    approved_by_id = db.Column(db.Integer, db.ForeignKey('users.id'))  # HOD/Admin who approved
+    approved_at = db.Column(db.DateTime)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationship
+    user = db.relationship('User', back_populates='student_verification', foreign_keys=[user_id])
+
+    def __repr__(self):
+        return f'<StudentVerification user_id={self.user_id} enrollment={self.enrollment_number} verified={self.is_verified}>'
+
+
+class CorporateProfile(db.Model):
+    """
+    Corporate/Recruiter account details.
+    Created by TPO when giving temporary access to companies.
+    """
+    __tablename__ = 'corporate_profiles'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique=True, nullable=False)
+    
+    # Company details
+    company_name = db.Column(db.String(150), nullable=False)
+    company_website = db.Column(db.String(200))
+    company_email = db.Column(db.String(120))
+    contact_person = db.Column(db.String(100))
+    phone = db.Column(db.String(20))
+    
+    # Authorization
+    created_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # TPO who created
+    authorized_by_id = db.Column(db.Integer, db.ForeignKey('users.id'))  # Admin/Principal who authorized
+    
+    # Access details
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    access_from = db.Column(db.DateTime, nullable=False)  # Start date of access
+    access_until = db.Column(db.DateTime, nullable=False)  # Expiry date of access
+    
+    # Tracking
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationship
+    user = db.relationship('User', back_populates='corporate_profile', foreign_keys=[user_id])
+
+    def is_access_valid(self):
+        """Check if access is still valid (active and not expired)."""
+        now = datetime.utcnow()
+        return self.is_active and self.access_from <= now <= self.access_until
+
+    def days_until_expiry(self):
+        """Get number of days until access expires."""
+        if not self.access_until:
+            return None
+        days = (self.access_until - datetime.utcnow()).days
+        return max(days, 0)
+
+    def __repr__(self):
+        return f'<CorporateProfile user_id={self.user_id} company={self.company_name} valid={self.is_access_valid()}>'
+
+
+class CorporateAccessToken(db.Model):
+    """
+    Tracks temporary access tokens given to corporates by TPO.
+    Allows audit trail and revocation of access.
+    """
+    __tablename__ = 'corporate_access_tokens'
+
+    id = db.Column(db.Integer, primary_key=True)
+    corporate_id = db.Column(db.Integer, db.ForeignKey('corporate_profiles.id'), nullable=False)
+    
+    # Token details
+    token = db.Column(db.String(255), unique=True, nullable=False, index=True)
+    purpose = db.Column(db.String(255))  # e.g., "Job posting", "Candidate access"
+    
+    # Authorization
+    created_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # TPO
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    
+    # Validity
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    revoked_at = db.Column(db.DateTime)
+    
+    # Tracking
+    last_used_at = db.Column(db.DateTime)
+    usage_count = db.Column(db.Integer, default=0)
+
+    # Relationship
+    created_by = db.relationship('User', back_populates='corporate_access_tokens', foreign_keys=[created_by_id])
+
+    def is_valid(self):
+        """Check if token is still valid and not expired."""
+        now = datetime.utcnow()
+        return self.is_active and self.revoked_at is None and now <= self.expires_at
+
+    def __repr__(self):
+        return f'<CorporateAccessToken corporate_id={self.corporate_id} valid={self.is_valid()}>'

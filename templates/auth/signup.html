@@ -1,26 +1,32 @@
 {% extends "base.html" %}
-{% block title %}Create Account - TPC Portal{% endblock %}
+{% block title %}Student Registration - TPC Portal{% endblock %}
 
 {% block content %}
 
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-7 col-lg-6 col-xl-5">
+        <div class="col-md-8 col-lg-7">
 
             <div class="card shadow border-0 rounded-4 overflow-hidden">
-                <div class="card-header bg-success text-white text-center py-4">
-                    <h3 class="mb-1 fw-bold">Join TPC Portal</h3>
-                    <p class="mb-0">Create your student or admin account</p>
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h3 class="mb-1 fw-bold">Student Registration</h3>
+                    <p class="mb-0">Create your college student account</p>
                 </div>
 
-                <div class="card-body p-5 p-md-5">
+                <div class="card-body p-5">
 
                     <form method="POST" action="{{ url_for('auth.signup') }}" novalidate>
 
+                        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Only college students can register.</strong> You'll need a valid college email and enrollment number.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+
                         <!-- Username -->
-                        <div class="mb-4">
+                        <div class="mb-3">
                             <label for="username" class="form-label fw-semibold">Username</label>
-                            <div class="input-group input-group-lg">
+                            <div class="input-group">
                                 <span class="input-group-text bg-light border-end-0">
                                     <i class="bi bi-person"></i>
                                 </span>
@@ -28,36 +34,102 @@
                                        class="form-control border-start-0" 
                                        id="username" 
                                        name="username" 
-                                       placeholder="Choose a unique username" 
+                                       placeholder="your_username" 
                                        required 
                                        autofocus
                                        pattern="[a-zA-Z0-9_]{3,50}"
-                                       title="3-50 characters, letters, numbers, underscore only">
+                                       title="3-50 characters: letters, numbers, underscore only">
                             </div>
-                            <div class="form-text text-muted">Used for login. Cannot be changed later.</div>
+                            <small class="form-text text-muted">Used for login (cannot be changed)</small>
                         </div>
 
                         <!-- Email -->
-                        <div class="mb-4">
-                            <label for="email" class="form-label fw-semibold">Email Address</label>
-                            <div class="input-group input-group-lg">
+                        <div class="mb-3">
+                            <label for="email" class="form-label fw-semibold">Personal Email</label>
+                            <div class="input-group">
                                 <span class="input-group-text bg-light border-end-0">
-                                    <i class="bi bi-envelope-at"></i>
+                                    <i class="bi bi-envelope"></i>
                                 </span>
                                 <input type="email" 
                                        class="form-control border-start-0" 
                                        id="email" 
                                        name="email" 
-                                       placeholder="your.college.email@example.com" 
+                                       placeholder="your.email@example.com" 
                                        required>
                             </div>
-                            <div class="form-text text-muted">Preferably use your college email for verification (future feature).</div>
+                            <small class="form-text text-muted">Personal contact email for notifications</small>
+                        </div>
+
+                        <!-- College Email (Required) -->
+                        <div class="mb-3">
+                            <label for="college_email" class="form-label fw-semibold">College Email <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="bi bi-envelope-at"></i>
+                                </span>
+                                <input type="email" 
+                                       class="form-control border-start-0" 
+                                       id="college_email" 
+                                       name="college_email" 
+                                       placeholder="your.name@college.edu" 
+                                       required>
+                            </div>
+                            <small class="form-text text-muted">Must be official college email (.edu or .ac.in). Verification link will be sent here.</small>
+                        </div>
+
+                        <!-- Enrollment Number -->
+                        <div class="mb-3">
+                            <label for="enrollment_number" class="form-label fw-semibold">Enrollment Number <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="bi bi-card-text"></i>
+                                </span>
+                                <input type="text" 
+                                       class="form-control border-start-0" 
+                                       id="enrollment_number" 
+                                       name="enrollment_number" 
+                                       placeholder="e.g., 2024001" 
+                                       required>
+                            </div>
+                            <small class="form-text text-muted">Your college enrollment/roll number</small>
+                        </div>
+
+                        <!-- Semester & Department Row -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="semester" class="form-label fw-semibold">Current Semester <span class="text-danger">*</span></label>
+                                <select class="form-select form-select-lg" id="semester" name="semester" required>
+                                    <option value="">Select semester</option>
+                                    <option value="1">1st Semester</option>
+                                    <option value="2">2nd Semester</option>
+                                    <option value="3">3rd Semester</option>
+                                    <option value="4">4th Semester</option>
+                                    <option value="5">5th Semester</option>
+                                    <option value="6">6th Semester</option>
+                                    <option value="7">7th Semester</option>
+                                    <option value="8">8th Semester</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="department" class="form-label fw-semibold">Department <span class="text-danger">*</span></label>
+                                <select class="form-select form-select-lg" id="department" name="department" required>
+                                    <option value="">Select department</option>
+                                    <option value="CSE">Computer Science (CSE)</option>
+                                    <option value="ECE">Electronics & Communication (ECE)</option>
+                                    <option value="MECH">Mechanical Engineering (MECH)</option>
+                                    <option value="CIVIL">Civil Engineering (CIVIL)</option>
+                                    <option value="EEE">Electrical & Electronics (EEE)</option>
+                                    <option value="IT">Information Technology (IT)</option>
+                                    <option value="BIOTECH">Biotechnology</option>
+                                    <option value="OTHER">Other</option>
+                                </select>
+                            </div>
                         </div>
 
                         <!-- Password -->
-                        <div class="mb-4">
-                            <label for="password" class="form-label fw-semibold">Password</label>
-                            <div class="input-group input-group-lg">
+                        <div class="mb-3">
+                            <label for="password" class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
+                            <div class="input-group">
                                 <span class="input-group-text bg-light border-end-0">
                                     <i class="bi bi-lock"></i>
                                 </span>
@@ -67,46 +139,46 @@
                                        name="password" 
                                        placeholder="Create a strong password" 
                                        required
-                                       minlength="8">
+                                       minlength="6">
                             </div>
-                            <div class="form-text text-muted">Minimum 8 characters. Use letters, numbers & symbols for better security.</div>
+                            <small class="form-text text-muted">Minimum 6 characters</small>
                         </div>
 
-                        <!-- Role Selection -->
-                        <div class="mb-5">
-                            <label class="form-label fw-semibold d-block">I am a:</label>
-                            <div class="row g-3">
-                                <div class="col-6">
-                                    <input type="radio" 
-                                           class="btn-check" 
-                                           name="role" 
-                                           id="role_student" 
-                                           value="Student" 
-                                           autocomplete="off" 
-                                           checked>
-                                    <label class="btn btn-outline-primary btn-lg w-100" for="role_student">
-                                        <i class="bi bi-mortarboard-fill me-2"></i>Student
-                                    </label>
-                                </div>
-                                <div class="col-6">
-                                    <input type="radio" 
-                                           class="btn-check" 
-                                           name="role" 
-                                           id="role_admin" 
-                                           value="Admin" 
-                                           autocomplete="off">
-                                    <label class="btn btn-outline-primary btn-lg w-100" for="role_admin">
-                                        <i class="bi bi-shield-lock-fill me-2"></i>Admin (TPO)
-                                    </label>
-                                </div>
+                        <!-- Confirm Password -->
+                        <div class="mb-4">
+                            <label for="password_confirm" class="form-label fw-semibold">Confirm Password <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="bi bi-lock-fill"></i>
+                                </span>
+                                <input type="password" 
+                                       class="form-control border-start-0" 
+                                       id="password_confirm" 
+                                       name="password_confirm" 
+                                       placeholder="Re-enter your password" 
+                                       required
+                                       minlength="6">
                             </div>
+                            <small class="form-text text-muted">Must match password above</small>
+                        </div>
+
+                        <!-- Info Alert -->
+                        <div class="alert alert-warning mb-4">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <strong>Verification Required:</strong>
+                            <ol class="mb-0 ps-3">
+                                <li>You'll receive a verification email at your college email</li>
+                                <li>Click the verification link to confirm your email</li>
+                                <li>Your HOD will review and approve your registration</li>
+                                <li>Once approved, you can fully access the portal</li>
+                            </ol>
                         </div>
 
                         <!-- Submit -->
-                        <div class="d-grid mb-4">
-                            <button type="submit" class="btn btn-success btn-lg rounded-pill shadow-sm">
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm">
                                 <i class="bi bi-person-check me-2"></i>
-                                Create My Account
+                                Create Student Account
                             </button>
                         </div>
 
@@ -124,7 +196,8 @@
 
             <div class="text-center mt-4">
                 <small class="text-muted">
-                    By signing up, you agree to our Terms of Service & Privacy Policy (to be added).
+                    <i class="bi bi-shield-check me-1"></i>
+                    Your registration is verified by your HOD before access is granted.
                 </small>
             </div>
 

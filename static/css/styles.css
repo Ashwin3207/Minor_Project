@@ -67,9 +67,7 @@ main {
     border: 1px solid rgba(0, 0, 0, 0.125);
 }
 
-.modal-content:hover {
-    /* No transform for modal content */
-}
+
 
 .shadow-sm {
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;

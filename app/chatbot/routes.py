@@ -136,12 +136,17 @@ def api_suggestions():
                     "Which companies should I apply to?"
                 ])
             elif user and user.role.lower() == 'admin':
-                # Admin-specific suggestions
+                # Admin-specific suggestions - includes new student detail keywords
                 suggestions.extend([
                     "Show placement statistics",
                     "List all applicants",
                     "Get branch-wise analytics",
-                    "Show me recent applications"
+                    "View student John",
+                    "Show students with CGPA > 8",
+                    "Filter students by CSE",
+                    "Show top 10 students",
+                    "Students with no backlog",
+                    "Analytics overview"
                 ])
         else:
             suggestions.append("Tell me about the placement portal")
