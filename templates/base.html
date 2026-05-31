@@ -40,7 +40,7 @@
                 <ul class="navbar-nav ms-auto align-items-center">
                     {% if 'user_id' in session %}
                         <!-- Logged-in user navigation -->
-                        {% if session.role == 'Admin' %}
+                        {% if session.role in ['Admin', 'TPO', 'HOD'] %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
                                     <i class="bi bi-speedometer2 me-1"></i> Dashboard
@@ -52,8 +52,8 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link btn ms-2 px-3" href="{{ url_for('admin.new_opportunity') }}">
-                                    <i class="bi bi-plus-circle me-1"></i> New Opportunity
+                                <a class="nav-link" href="{{ url_for('admin.new_opportunity') }}">
+                                    <i class="bi bi-plus-circle me-1"></i> Post Opportunity
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -61,6 +61,43 @@
                                     <i class="bi bi-people me-1"></i> Students
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('admin.export_students') }}">
+                                    <i class="bi bi-download me-1"></i> Export
+                                </a>
+                            </li>
+                            {% if session.role == 'TPO' %}
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ url_for('tpo.approve_students') }}">
+                                        <i class="bi bi-check-circle me-1"></i> Approvals
+                                    </a>
+                                </li>
+                            {% elif session.role == 'HOD' %}
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ url_for('hod.approve_students') }}">
+                                        <i class="bi bi-check-circle me-1"></i> Approvals
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% elif session.role == 'Principal' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('principal.dashboard') }}">
+                                    <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                                </a>
+                            </li>
+
+                        {% elif session.role == 'Corporate' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('corporate.dashboard') }}">
+                                    <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('corporate.post_opportunity') }}">
+                                    <i class="bi bi-plus-circle me-1"></i> Post Job
+                                </a>
+                            </li>
+
                         {% elif session.role == 'Student' %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ url_for('student.profile') }}">
@@ -74,7 +111,7 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ url_for('student.applications') }}">
-                                    <i class="bi bi-list-check me-1"></i> Applications
+                                    <i class="bi bi-list-check me-1"></i> My Applications
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -84,36 +121,46 @@
                             </li>
                         {% endif %}
 
-                        <!-- Chatbot Link -->
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('chatbot.chatbot_page') }}">
-                                <i class="bi bi-chat-dots me-1"></i> Ask Assistant
+                        <!-- Chatbot Link - Available to all roles -->
+                        <li class="nav-item ms-2">
+                            <a class="nav-link btn btn-sm btn-info text-white" href="{{ url_for('chatbot.chatbot_page') }}">
+                                <i class="bi bi-chat-dots me-1"></i> AI Assistant
                             </a>
                         </li>
 
-                        <li class="nav-item ms-3">
-                            <a class="nav-link text-warning fw-semibold" href="{{ url_for('auth.logout') }}">
-                                <i class="bi bi-box-arrow-right me-1"></i> Logout ({{ session.username if 'username' in session else 'User' }})
+                        <!-- User Dropdown -->
+                        <li class="nav-item dropdown ms-2">
+                            <a class="nav-link dropdown-toggle text-warning fw-semibold" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-person-gear me-1"></i> {{ session.username if 'username' in session else 'Account' }}
                             </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                        <i class="bi bi-box-arrow-right me-2"></i> Logout
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
                     {% else %}
                         <!-- Guest navigation -->
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.index') }}">Home</a>
+                            <a class="nav-link" href="{{ url_for('main.index') }}">
+                                <i class="bi bi-house me-1"></i> Home
+                            </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('chatbot.chatbot_page') }}">
                                 <i class="bi bi-chat-dots me-1"></i> Ask Assistant
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('auth.login') }}">
+                        <li class="nav-item ms-2">
+                            <a class="nav-link btn btn-sm btn-outline-light" href="{{ url_for('auth.login') }}">
                                 <i class="bi bi-box-arrow-in-right me-1"></i> Login
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link btn btn-outline-light ms-2 px-4" href="{{ url_for('auth.signup') }}">
-                                Sign Up
+                        <li class="nav-item ms-2">
+                            <a class="nav-link btn btn-sm btn-light text-dark fw-semibold" href="{{ url_for('auth.signup') }}">
+                                <i class="bi bi-person-plus me-1"></i> Sign Up
                             </a>
                         </li>
                     {% endif %}
@@ -136,8 +183,11 @@
         {% endwith %}
     </div>
 
+    <!-- Page Loading Overlay -->
+    <div id="pageOverlay" class="page-overlay"></div>
+
     <!-- Main Content Block -->
-    <main class="container py-4">
+    <main class="container py-4 fade-in-content">
         {% block content %}{% endblock %}
     </main>
 
@@ -159,6 +209,51 @@
 
     <!-- Custom JS (optional) -->
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+
+    <!-- Page Transition Script -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Fade in content on page load
+        const content = document.querySelector('.fade-in-content');
+        const overlay = document.getElementById('pageOverlay');
+        
+        if (content) {
+            content.style.opacity = '1';
+        }
+        if (overlay) {
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 300);
+        }
+    });
+
+    // Add click handlers to navigation links for page transition
+    document.querySelectorAll('a[href^="/"]').forEach(link => {
+        // Skip logout and modals
+        if (!link.href.includes('logout') && !link.hasAttribute('data-bs-toggle')) {
+            link.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                
+                // Skip internal anchors
+                if (href.startsWith('#')) return;
+                
+                e.preventDefault();
+                
+                const overlay = document.getElementById('pageOverlay');
+                if (overlay) {
+                    overlay.style.opacity = '1';
+                    overlay.style.display = 'block';
+                }
+                
+                // Navigate after brief delay
+                setTimeout(() => {
+                    window.location.href = href;
+                }, 150);
+            });
+        }
+    });
+    </script>
 
     {% block scripts %}{% endblock %}
 </body>

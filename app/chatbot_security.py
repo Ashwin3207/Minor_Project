@@ -20,15 +20,17 @@ ALLOWED_INTENTS = {
     'branch_analytics'
 }
 
+ADMIN_PRIVILEGE_ROLES = {'admin', 'tpo', 'hod'}
+
 # Role-based permissions: intent -> required roles
 INTENT_PERMISSIONS = {
-    'search_company': {'student', 'admin'},
-    'check_eligibility': {'student', 'admin'},
-    'application_status': {'student', 'admin'},
-    'upcoming_drives': {'student', 'admin'},
-    'placement_stats': {'admin'},
-    'list_applicants': {'admin'},
-    'branch_analytics': {'admin'}
+    'search_company': {'student', *ADMIN_PRIVILEGE_ROLES},
+    'check_eligibility': {'student', *ADMIN_PRIVILEGE_ROLES},
+    'application_status': {'student', *ADMIN_PRIVILEGE_ROLES},
+    'upcoming_drives': {'student', *ADMIN_PRIVILEGE_ROLES},
+    'placement_stats': ADMIN_PRIVILEGE_ROLES,
+    'list_applicants': ADMIN_PRIVILEGE_ROLES,
+    'branch_analytics': ADMIN_PRIVILEGE_ROLES
 }
 
 # Intents that don't require authentication
@@ -152,8 +154,8 @@ def sanitize_intent_params(intent: str, params: dict, user_id: int = None) -> di
         # Students can only access their own data
         sanitized['student_id'] = user_id
         sanitized['user_id'] = user_id
-    elif user_role == 'admin':
-        # Admin can query other student IDs if provided
+    elif user_role in ADMIN_PRIVILEGE_ROLES:
+        # Admin-privileged roles can query other student IDs if provided
         if 'student_id' in params and isinstance(params['student_id'], int):
             sanitized['student_id'] = params['student_id']
         if 'branch' in params and isinstance(params['branch'], str):

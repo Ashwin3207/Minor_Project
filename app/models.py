@@ -22,8 +22,8 @@ class User(db.Model):
     # Relationships
     student_profile = db.relationship('StudentProfile', back_populates='user', uselist=False, cascade='all, delete-orphan')
     applications = db.relationship('Application', back_populates='student', lazy='dynamic')
-    student_verification = db.relationship('StudentVerification', back_populates='user', uselist=False, cascade='all, delete-orphan')
-    corporate_profile = db.relationship('CorporateProfile', back_populates='user', uselist=False, cascade='all, delete-orphan')
+    student_verification = db.relationship('StudentVerification', back_populates='user', uselist=False, cascade='all, delete-orphan', foreign_keys='StudentVerification.user_id')
+    corporate_profile = db.relationship('CorporateProfile', back_populates='user', uselist=False, cascade='all, delete-orphan', foreign_keys='CorporateProfile.user_id')
     corporate_access_tokens = db.relationship('CorporateAccessToken', back_populates='created_by', lazy='dynamic')
 
     def __repr__(self):
@@ -310,15 +310,8 @@ class StudentVerification(db.Model):
     
     # Enrollment details
     enrollment_number = db.Column(db.String(50), unique=True, nullable=False, index=True)
-    college_email = db.Column(db.String(120), index=True)  # e.g., student@college.edu
     semester = db.Column(db.Integer)  # 1-8
     department = db.Column(db.String(50))  # CSE, ECE, MECH, etc.
-    
-    # Verification status
-    is_verified = db.Column(db.Boolean, default=False, nullable=False)
-    verification_code = db.Column(db.String(100))  # OTP or verification token
-    verification_sent_at = db.Column(db.DateTime)
-    verified_at = db.Column(db.DateTime)
     
     # Approval status (by HOD/Admin)
     is_approved = db.Column(db.Boolean, default=False, nullable=False)
@@ -332,7 +325,7 @@ class StudentVerification(db.Model):
     user = db.relationship('User', back_populates='student_verification', foreign_keys=[user_id])
 
     def __repr__(self):
-        return f'<StudentVerification user_id={self.user_id} enrollment={self.enrollment_number} verified={self.is_verified}>'
+        return f'<StudentVerification user_id={self.user_id} enrollment={self.enrollment_number} approved={self.is_approved}>'
 
 
 class CorporateProfile(db.Model):

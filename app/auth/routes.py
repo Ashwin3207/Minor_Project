@@ -2,7 +2,6 @@ from flask import render_template, redirect, url_for, flash, request, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from datetime import datetime
-import secrets
 
 from app import db
 from app.models import User, StudentVerification
@@ -56,13 +55,10 @@ def login():
             flash('Your account has been deactivated. Contact support.', 'danger')
             return redirect(url_for('auth.login'))
 
-        # For students, check if verified and approved
+        # For students, check if approved
         if user.role == 'Student':
             verification = StudentVerification.query.filter_by(user_id=user.id).first()
-            if not verification or not verification.is_verified:
-                flash('Your student account is not verified. Check your email for verification link.', 'warning')
-                return redirect(url_for('auth.login'))
-            if not verification.is_approved:
+            if not verification or not verification.is_approved:
                 flash('Your account is pending approval from your HOD/Admin. Please try again later.', 'info')
                 return redirect(url_for('auth.login'))
 
@@ -98,12 +94,11 @@ def signup():
         password = request.form.get('password', '')
         password_confirm = request.form.get('password_confirm', '')
         enrollment_number = request.form.get('enrollment_number', '').strip()
-        college_email = request.form.get('college_email', '').strip()
         semester = request.form.get('semester', type=int)
         department = request.form.get('department', '').strip()
 
         # Validate inputs
-        if not all([username, email, password, enrollment_number, college_email, semester, department]):
+        if not all([username, email, password, enrollment_number, semester, department]):
             flash('All fields are required.', 'danger')
             return redirect(url_for('auth.signup'))
 
@@ -116,13 +111,8 @@ def signup():
             return redirect(url_for('auth.signup'))
 
         # Check email format
-        if '@' not in email or '@' not in college_email:
+        if '@' not in email:
             flash('Invalid email format.', 'danger')
-            return redirect(url_for('auth.signup'))
-
-        # Only .edu or college domain emails allowed for college_email
-        if not college_email.lower().endswith(('.edu', '.ac.in')):
-            flash('College email must be from a recognized college domain (.edu or .ac.in).', 'danger')
             return redirect(url_for('auth.signup'))
 
         # Check uniqueness
@@ -152,22 +142,17 @@ def signup():
             db.session.flush()  # Get the user ID
 
             # Create verification record
-            verification_code = secrets.token_urlsafe(32)
             student_verification = StudentVerification(
                 user_id=new_user.id,
                 enrollment_number=enrollment_number,
-                college_email=college_email,
                 semester=semester,
                 department=department,
-                is_verified=False,
-                is_approved=False,
-                verification_code=verification_code,
-                verification_sent_at=datetime.utcnow()
+                is_approved=False
             )
             db.session.add(student_verification)
             db.session.commit()
 
-            flash('Account created! Check your college email for verification link.', 'success')
+            flash('Account created! Your account is pending approval from your HOD.', 'success')
             # TODO: Send verification email with link: /verify/<verification_code>
             return redirect(url_for('auth.login'))
 
@@ -178,32 +163,7 @@ def signup():
     return render_template('auth/signup.html')
 
 
-@bp.route('/verify/<verification_code>')
-def verify_email(verification_code):
-    """Verify student email."""
-    try:
-        verification = StudentVerification.query.filter_by(verification_code=verification_code).first()
-        
-        if not verification:
-            flash('Invalid verification link.', 'danger')
-            return redirect(url_for('auth.login'))
 
-        if verification.is_verified:
-            flash('Email already verified. Please log in.', 'info')
-            return redirect(url_for('auth.login'))
-
-        # Mark as verified
-        verification.is_verified = True
-        verification.verified_at = datetime.utcnow()
-        verification.verification_code = None  # Invalidate code
-        db.session.commit()
-
-        flash('Email verified! Your account is pending approval from your HOD.', 'success')
-        return redirect(url_for('auth.login'))
-
-    except Exception as e:
-        flash(f'Verification error: {str(e)}', 'danger')
-        return redirect(url_for('auth.login'))
 
 
 @bp.route('/logout')

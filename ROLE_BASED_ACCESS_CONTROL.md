@@ -7,7 +7,7 @@ This document explains the newly implemented role-based access control system th
 ## Supported Roles
 
 ### 1. **Student**
-- **Registration**: College students register with enrollment number and college email
+- **Registration**: College students register with enrollment number and valid email
 - **Verification Required**: Email verification mandatory
 - **Approval**: HOD or TPO approval required before full access
 - **Permissions**:

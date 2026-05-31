@@ -14,14 +14,19 @@ logger = logging.getLogger(__name__)
 
 bp = Blueprint('chatbot', __name__, url_prefix='/chatbot')
 
+from app.auth.decorators import role_required
+from app.chatbot_security import ADMIN_PRIVILEGE_ROLES
+
 
 @bp.route('/')
+@role_required('Admin', 'TPO', 'HOD', 'Student', 'Principal', 'Corporate')
 def chatbot_page():
-    """Render the chatbot page."""
+    """Render the chatbot page (accessible to logged-in users with roles)."""
     return render_template('chatbot/chat.html')
 
 
 @bp.route('/api/chat', methods=['POST'])
+@role_required('Admin', 'TPO', 'HOD', 'Student', 'Principal', 'Corporate')
 def api_chat():
     """
     API endpoint to process user queries with AI-powered intent extraction.
@@ -135,8 +140,8 @@ def api_suggestions():
                     "Show me my recent applications",
                     "Which companies should I apply to?"
                 ])
-            elif user and user.role.lower() == 'admin':
-                # Admin-specific suggestions - includes new student detail keywords
+            elif user and user.role.lower() in ADMIN_PRIVILEGE_ROLES:
+                # Admin-privileged suggestions - includes student detail keywords
                 suggestions.extend([
                     "Show placement statistics",
                     "List all applicants",
@@ -206,7 +211,7 @@ def api_intent_list():
     available_intents = {}
     for intent in ALLOWED_INTENTS:
         required_roles = INTENT_PERMISSIONS.get(intent, {'student', 'admin'})
-        is_available = user_role in required_roles or user_role == 'admin'
+        is_available = user_role in required_roles or user_role in ADMIN_PRIVILEGE_ROLES
         
         available_intents[intent] = {
             'available': is_available,

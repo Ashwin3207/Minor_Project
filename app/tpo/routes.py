@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import secrets
 
 from app import db
-from app.models import User, StudentVerification, CorporateProfile, CorporateAccessToken
+from app.models import User, StudentVerification, CorporateProfile, CorporateAccessToken, Opportunity, Application
 from app.tpo import bp
 from app.auth.decorators import tpo_required, role_required, admin_or_tpo_required, hod_or_principal_required
 
@@ -13,27 +13,8 @@ from app.auth.decorators import tpo_required, role_required, admin_or_tpo_requir
 @bp.route('/dashboard')
 @tpo_required
 def dashboard():
-    """TPO dashboard with overview of students and corporate access."""
-    total_students = User.query.filter_by(role='Student').count()
-    verified_students = db.session.query(StudentVerification).filter_by(is_verified=True).count()
-    pending_approvals = db.session.query(StudentVerification).filter_by(
-        is_verified=True, is_approved=False
-    ).count()
-    active_corporates = CorporateProfile.query.filter_by(is_active=True).count()
-    
-    stats = {
-        'total_students': total_students,
-        'verified_students': verified_students,
-        'pending_approvals': pending_approvals,
-        'active_corporates': active_corporates,
-    }
-    
-    # Recent pending verifications
-    pending = db.session.query(StudentVerification).filter_by(
-        is_verified=True, is_approved=False
-    ).order_by(StudentVerification.verified_at.desc()).limit(10).all()
-    
-    return render_template('tpo/dashboard.html', stats=stats, pending_verifications=pending)
+    """TPO dashboard - redirect to admin dashboard for comprehensive analytics."""
+    return redirect(url_for('admin.dashboard'))
 
 
 @bp.route('/approve_students', methods=['GET', 'POST'])
@@ -49,8 +30,8 @@ def approve_students():
             flash('Student verification not found.', 'danger')
             return redirect(url_for('tpo.approve_students'))
         
-        if not verification.is_verified:
-            flash('Student email not verified yet.', 'warning')
+        if verification.is_approved:
+            flash('Student already approved.', 'info')
             return redirect(url_for('tpo.approve_students'))
         
         if action == 'approve':
@@ -66,12 +47,15 @@ def approve_students():
             flash(f'Student {verification.user.username} rejected.', 'info')
     
     # Show pending verifications
-    pending = db.session.query(StudentVerification).join(User).filter(
-        StudentVerification.is_verified == True,
+    pending = db.session.query(StudentVerification).join(
+        User, StudentVerification.user_id == User.id
+    ).filter(
         StudentVerification.is_approved == False
     ).all()
     
-    approved = db.session.query(StudentVerification).join(User).filter(
+    approved = db.session.query(StudentVerification).join(
+        User, StudentVerification.user_id == User.id
+    ).filter(
         StudentVerification.is_approved == True
     ).order_by(StudentVerification.approved_at.desc()).limit(20).all()
     
@@ -257,3 +241,194 @@ def view_students_by_department():
                           students=students, 
                           selected_department=department,
                           departments=departments)
+
+
+@bp.route('/post_opportunity')
+@tpo_required
+def new_opportunity():
+    """Select opportunity type before creating"""
+    types = ['Job', 'Internship', 'Session', 'Hackathon', 'Bootcamp', 'Seminar']
+    return render_template('tpo/select_opportunity_type.html', types=types)
+
+
+@bp.route('/create_opportunity/<opp_type>', methods=['GET', 'POST'])
+@tpo_required
+def create_opportunity(opp_type):
+    """Create a new opportunity (job, internship, seminar, etc.)"""
+    valid_types = ['Job', 'Internship', 'Session', 'Hackathon', 'Bootcamp', 'Seminar']
+    if opp_type not in valid_types:
+        flash('Invalid opportunity type.', 'danger')
+        return redirect(url_for('tpo.new_opportunity'))
+
+    if request.method == 'POST':
+        try:
+            title = request.form.get('title', '').strip()
+            organizer = request.form.get('organizer', '').strip()
+            description = request.form.get('description', '').strip()
+            requirements = request.form.get('requirements', '').strip()
+            date_str = request.form.get('date', '')
+            mode = request.form.get('mode', '').strip()
+
+            if not all([title, organizer, description, date_str]):
+                flash('Title, organizer, description, and date are required.', 'danger')
+                return redirect(url_for('tpo.create_opportunity', opp_type=opp_type))
+
+            try:
+                opp_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M')
+            except ValueError:
+                flash('Invalid date format.', 'danger')
+                return redirect(url_for('tpo.create_opportunity', opp_type=opp_type))
+
+            new_opp = Opportunity(
+                title=title,
+                type=opp_type,
+                organizer=organizer,
+                description=description,
+                requirements=requirements,
+                date=opp_date,
+                mode=mode
+            )
+
+            # Handle job/internship specific fields
+            if opp_type in ['Job', 'Internship']:
+                ctc = request.form.get('ctc', '').strip()
+                allowed_branches = request.form.get('allowed_branches', '').strip()
+                deadline_str = request.form.get('deadline', '')
+                min_cgpa_str = request.form.get('min_cgpa', '')
+
+                if not all([ctc, allowed_branches, deadline_str]):
+                    flash('CTC, allowed branches, and deadline are required for jobs/internships.', 'danger')
+                    return redirect(url_for('tpo.create_opportunity', opp_type=opp_type))
+
+                try:
+                    new_opp.deadline = datetime.strptime(deadline_str, '%Y-%m-%dT%H:%M')
+                except ValueError:
+                    flash('Invalid deadline format.', 'danger')
+                    return redirect(url_for('tpo.create_opportunity', opp_type=opp_type))
+
+                new_opp.ctc = ctc
+                new_opp.allowed_branches = allowed_branches
+                new_opp.min_cgpa = float(min_cgpa_str) if min_cgpa_str else 0.0
+
+            db.session.add(new_opp)
+            db.session.commit()
+
+            flash(f'{opp_type} posted successfully!', 'success')
+            return redirect(url_for('tpo.opportunities'))
+
+        except ValueError as e:
+            flash(f'Invalid input format: {str(e)}', 'danger')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error posting {opp_type}: {str(e)}', 'danger')
+
+    return render_template('tpo/create_opportunity.html', opp_type=opp_type)
+
+
+@bp.route('/opportunities')
+@tpo_required
+def opportunities():
+    """View all posted opportunities"""
+    page = request.args.get('page', 1, type=int)
+    query = Opportunity.query.order_by(Opportunity.created_at.desc())
+    opps = query.paginate(page=page, per_page=15, error_out=False)
+    
+    # Create a dictionary mapping opportunity IDs to their deadline status
+    deadline_statuses = {}
+    for opp in opps.items:
+        deadline_statuses[opp.id] = opp.get_deadline_status() if hasattr(opp, 'get_deadline_status') else 'Open'
+
+    return render_template('tpo/opportunities.html', 
+                          opportunities=opps.items,
+                          deadline_statuses=deadline_statuses,
+                          page=page)
+
+
+@bp.route('/opportunity/<int:opp_id>')
+@tpo_required
+def view_opportunity(opp_id):
+    """View details of a specific opportunity"""
+    opp = Opportunity.query.get_or_404(opp_id)
+    return render_template('tpo/opportunity_detail.html', opportunity=opp)
+
+
+@bp.route('/opportunity_applicants/<int:opp_id>')
+@tpo_required
+def opportunity_applicants(opp_id):
+    """View all applicants for a specific opportunity"""
+    opp = Opportunity.query.get_or_404(opp_id)
+    page = request.args.get('page', 1, type=int)
+    status_filter = request.args.get('status', '').strip()
+
+    query = Application.query.filter_by(opportunity_id=opp_id).join(User)
+
+    if status_filter:
+        query = query.filter(Application.status == status_filter)
+
+    applications = query.order_by(Application.applied_at.desc()).paginate(page=page, per_page=15, error_out=False)
+
+    return render_template('tpo/opportunity_applicants.html', 
+                          opportunity=opp, 
+                          applications=applications, 
+                          status_filter=status_filter)
+
+
+@bp.route('/confirm_opportunity_application/<int:application_id>', methods=['POST'])
+@tpo_required
+def confirm_opportunity_application(application_id):
+    """Update status of an opportunity application"""
+    try:
+        application = Application.query.get_or_404(application_id)
+        new_status = request.form.get('status', '').strip()
+
+        # Validate status
+        valid_statuses = ['Applied', 'Shortlisted', 'Selected', 'Rejected']
+        if new_status not in valid_statuses:
+            flash('Invalid status provided.', 'danger')
+            return redirect(url_for('tpo.opportunity_applicants', opp_id=application.opportunity_id))
+
+        application.status = new_status
+        application.updated_at = datetime.utcnow()
+        db.session.commit()
+
+        status_message = f"Application status updated to {new_status}!"
+        flash(status_message, 'success')
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error updating application: {str(e)}', 'danger')
+
+    return redirect(url_for('tpo.opportunity_applicants', opp_id=application.opportunity_id))
+
+
+@bp.route('/view_all_students')
+@tpo_required
+def view_all_students():
+    """View all approved students"""
+    page = request.args.get('page', 1, type=int)
+    search = request.args.get('search', '').strip()
+    branch = request.args.get('branch', '').strip()
+    
+    query = db.session.query(User, StudentVerification).join(
+        StudentVerification, User.id == StudentVerification.user_id
+    ).filter(
+        User.role == 'Student',
+        StudentVerification.is_approved == True
+    )
+    
+    if search:
+        query = query.filter(
+            (User.username.ilike(f'%{search}%')) |
+            (User.email.ilike(f'%{search}%')) |
+            (StudentVerification.enrollment_number.ilike(f'%{search}%'))
+        )
+    
+    if branch:
+        query = query.filter(StudentVerification.department.ilike(f'%{branch}%'))
+    
+    students = query.paginate(page=page, per_page=20, error_out=False)
+    
+    return render_template('tpo/view_all_students.html', 
+                          students=students,
+                          search=search,
+                          branch=branch)

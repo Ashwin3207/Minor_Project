@@ -61,11 +61,20 @@
                     <a href="{{ url_for('tpo.approve_students') }}" class="btn btn-outline-primary me-2 mb-2">
                         <i class="bi bi-check-lg me-2"></i>Approve Students
                     </a>
+                    <a href="{{ url_for('tpo.new_opportunity') }}" class="btn btn-outline-success me-2 mb-2">
+                        <i class="bi bi-briefcase me-2"></i>Post Opportunity
+                    </a>
+                    <a href="{{ url_for('tpo.opportunities') }}" class="btn btn-outline-info me-2 mb-2">
+                        <i class="bi bi-list-check me-2"></i>View Opportunities
+                    </a>
                     <a href="{{ url_for('tpo.create_corporate') }}" class="btn btn-outline-success me-2 mb-2">
                         <i class="bi bi-plus-circle me-2"></i>Create Corporate Account
                     </a>
                     <a href="{{ url_for('tpo.manage_corporates') }}" class="btn btn-outline-info me-2 mb-2">
                         <i class="bi bi-briefcase me-2"></i>Manage Corporates
+                    </a>
+                    <a href="{{ url_for('tpo.view_all_students') }}" class="btn btn-outline-secondary me-2 mb-2">
+                        <i class="bi bi-people me-2"></i>View All Students
                     </a>
                     <a href="{{ url_for('tpo.view_students_by_department') }}" class="btn btn-outline-secondary mb-2">
                         <i class="bi bi-diagram-2 me-2"></i>View by Department
@@ -99,7 +108,7 @@
                                 {% for ver in pending_verifications[:5] %}
                                 <tr>
                                     <td>{{ ver.user.username }}</td>
-                                    <td>{{ ver.college_email }}</td>
+                                    <td>{{ ver.user.email }}</td>
                                     <td>{{ ver.department }}</td>
                                     <td><small>{{ ver.verified_at.strftime('%Y-%m-%d') if ver.verified_at else 'N/A' }}</small></td>
                                     <td>

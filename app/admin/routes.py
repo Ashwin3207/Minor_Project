@@ -6,31 +6,212 @@ import os
 from io import StringIO, BytesIO
 
 from app import db
-from app.models import Job, StudentProfile, User, Application, Opportunity
+from app.models import Job, StudentProfile, User, Application, Opportunity, StudentVerification
 from app.admin import bp
 from app.auth.decorators import admin_required, role_required
 
 
-@bp.route('/dashboard')
+@bp.route('/show_students')
+@role_required('Admin', 'TPO', 'HOD')
+def show_students():
+    """Show list of all students for users with admin privileges."""
+    page = request.args.get('page', 1, type=int)
+    branch_filter = request.args.get('branch', '').strip()
+    min_cgpa_filter = request.args.get('min_cgpa', type=float)
+
+    query = StudentProfile.query.join(User).filter(User.role == 'Student')
+
+    if branch_filter:
+        query = query.filter(StudentProfile.branch.ilike(f'%{branch_filter}%'))
+
+    if min_cgpa_filter is not None:
+        query = query.filter(StudentProfile.cgpa >= min_cgpa_filter)
+
+    students = query.order_by(StudentProfile.cgpa.desc())\
+                    .paginate(page=page, per_page=15, error_out=False)
+
+    return render_template('admin/view_students.html', students=students)
+
+
+@bp.route('/student_detail/<int:user_id>')
 @admin_required
+def student_detail(user_id):
+    """Show full details of a student."""
+    user = User.query.get_or_404(user_id)
+    if user.role != 'Student':
+        flash('User is not a student.', 'danger')
+        return redirect(url_for('admin.show_students'))
+    
+    profile = StudentProfile.query.filter_by(user_id=user_id).first_or_404()
+    verification = StudentVerification.query.filter_by(user_id=user_id).first()
+    
+    return render_template('admin/student_detail.html', user=user, profile=profile, verification=verification)
+
+
+@bp.route('/dashboard')
+@role_required('Admin', 'TPO', 'HOD')
 def dashboard():
+    from app.models import StudentVerification, CorporateProfile
+    from sqlalchemy import func
+    from datetime import datetime, timedelta
+    
+    # Basic Statistics
     total_students = User.query.filter_by(role='Student').count()
+    verified_students = db.session.query(StudentVerification).filter_by(is_approved=True).count()
     total_jobs = Job.query.count()
     total_opportunities = Opportunity.query.count()
     total_applications = Application.query.count()
-    total_placed = Application.query.filter_by(status='Selected').count()
-    pending_applications = Application.query.filter_by(status='Applied').count()
+    
+    # Application Status Breakdown
+    applied = Application.query.filter_by(status='Applied').count()
+    shortlisted = Application.query.filter_by(status='Shortlisted').count()
+    selected = Application.query.filter_by(status='Selected').count()
+    rejected = Application.query.filter_by(status='Rejected').count()
+    
+    total_placed = selected
+    active_corporates = CorporateProfile.query.filter_by(is_active=True).count()
+    
+    # Placement Rate Calculation
+    placement_rate = 0
+    if total_students > 0:
+        placed_students = db.session.query(func.count(func.distinct(Application.student_id))).filter_by(status='Selected').scalar() or 0
+        placement_rate = (placed_students / total_students) * 100
+
+    # Recent Applications (last 20)
+    recent_applications = db.session.query(
+        Application, Opportunity, User, StudentVerification
+    ).join(
+        Opportunity, Application.opportunity_id == Opportunity.id
+    ).join(
+        User, Application.student_id == User.id
+    ).outerjoin(
+        StudentVerification, User.id == StudentVerification.user_id
+    ).order_by(
+        Application.applied_at.desc()
+    ).limit(20).all()
+
+    # ALL Placements (Selected Applications) - Complete Record
+    all_placements = db.session.query(
+        Application, Opportunity, User, StudentVerification
+    ).join(
+        Opportunity, Application.opportunity_id == Opportunity.id
+    ).join(
+        User, Application.student_id == User.id
+    ).outerjoin(
+        StudentVerification, User.id == StudentVerification.user_id
+    ).filter(
+        Application.status == 'Selected'
+    ).order_by(
+        Application.updated_at.desc()
+    ).all()
+
+    # Get Application Statuses for Chart
+    statuses = {
+        'Applied': applied,
+        'Shortlisted': shortlisted,
+        'Selected': selected,
+        'Rejected': rejected,
+    }
+
+    # Top Companies by Applications
+    top_companies = db.session.query(
+        Opportunity.company_name,
+        func.count(Application.id).label('app_count')
+    ).join(
+        Application, Application.opportunity_id == Opportunity.id
+    ).group_by(
+        Opportunity.company_name
+    ).order_by(
+        func.count(Application.id).desc()
+    ).limit(5).all()
+
+    # Top Companies by Placements
+    top_companies_placements = db.session.query(
+        Opportunity.company_name,
+        func.count(Application.id).label('placed_count')
+    ).join(
+        Application, Application.opportunity_id == Opportunity.id
+    ).filter(
+        Application.status == 'Selected'
+    ).group_by(
+        Opportunity.company_name
+    ).order_by(
+        func.count(Application.id).desc()
+    ).limit(10).all()
+
+    # Branch-wise Statistics
+    branch_stats = db.session.query(
+        StudentVerification.department,
+        func.count(StudentVerification.id).label('total'),
+        func.sum(func.cast(StudentVerification.is_approved == True, db.Integer)).label('approved')
+    ).group_by(
+        StudentVerification.department
+    ).all()
+
+    # Placement Trend (Last 30 days - by day)
+    thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+    placement_trend = db.session.query(
+        func.date(Application.updated_at).label('date'),
+        func.count(Application.id).label('count')
+    ).filter(
+        Application.status == 'Selected',
+        Application.updated_at >= thirty_days_ago
+    ).group_by(
+        func.date(Application.updated_at)
+    ).order_by(
+        func.date(Application.updated_at)
+    ).all()
+
+    # Format trend data for chart
+    trend_dates = []
+    trend_counts = []
+    if placement_trend:
+        for date, count in placement_trend:
+            trend_dates.append(str(date))
+            trend_counts.append(count)
+
+    # Recent Placements (Selected Applications) - for display
+    recent_placements = db.session.query(
+        Application, Opportunity, User
+    ).join(
+        Opportunity, Application.opportunity_id == Opportunity.id
+    ).join(
+        User, Application.student_id == User.id
+    ).filter(
+        Application.status == 'Selected'
+    ).order_by(
+        Application.updated_at.desc()
+    ).limit(10).all()
 
     stats = {
         'total_students': total_students,
+        'verified_students': verified_students,
         'total_jobs': total_jobs,
         'total_opportunities': total_opportunities,
         'total_applications': total_applications,
         'total_placed': total_placed,
-        'pending_applications': pending_applications,
+        'active_corporates': active_corporates,
+        'placement_rate': round(placement_rate, 2),
+        'applied': applied,
+        'shortlisted': shortlisted,
+        'selected': selected,
+        'rejected': rejected,
+        'statuses': statuses,
     }
 
-    return render_template('admin/dashboard.html', stats=stats)
+    return render_template(
+        'admin/dashboard.html',
+        stats=stats,
+        recent_applications=recent_applications,
+        recent_placements=recent_placements,
+        all_placements=all_placements,
+        top_companies=top_companies,
+        top_companies_placements=top_companies_placements,
+        branch_stats=branch_stats,
+        trend_dates=trend_dates,
+        trend_counts=trend_counts
+    )
+
 
 
 @bp.route('/post_job', methods=['GET', 'POST'])

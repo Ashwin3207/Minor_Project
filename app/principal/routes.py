@@ -17,9 +17,6 @@ def dashboard():
     total_applications = Application.query.count()
     placed_students = Application.query.filter_by(status='Selected').count()
     
-    verified_students = db.session.query(StudentVerification).filter_by(
-        is_verified=True
-    ).count()
     approved_students = db.session.query(StudentVerification).filter_by(
         is_approved=True
     ).count()
@@ -29,7 +26,6 @@ def dashboard():
     
     stats = {
         'total_students': total_students,
-        'verified_students': verified_students,
         'approved_students': approved_students,
         'total_corporates': total_corporates,
         'total_applications': total_applications,
@@ -85,9 +81,6 @@ def view_all_students():
     query = db.session.query(User, StudentVerification).outerjoin(
         StudentVerification, User.id == StudentVerification.user_id
     ).filter(User.role == 'Student')
-    
-    if verified_only:
-        query = query.filter(StudentVerification.is_verified == True)
     
     if search:
         query = query.filter(

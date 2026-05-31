@@ -11,9 +11,8 @@ from app.auth.decorators import hod_required
 @bp.route('/dashboard')
 @hod_required
 def dashboard():
-    """HOD dashboard."""
-    # Get current user to determine their department
-    current_user = User.query.get(session['user_id'])
+    """HOD dashboard - redirect to admin dashboard for comprehensive analytics."""
+    return redirect(url_for('admin.dashboard'))
     
     # Assuming HOD name might contain department info
     # In a real system, you'd have a HODProfile model
@@ -21,11 +20,10 @@ def dashboard():
     # Get statistics for all students (or department-specific)
     total_students = User.query.filter_by(role='Student').count()
     verified_students = db.session.query(StudentVerification).filter_by(
-        is_verified=True
+        is_approved=True
     ).count()
-    
     pending_approvals = db.session.query(StudentVerification).filter_by(
-        is_verified=True, is_approved=False
+        is_approved=False
     ).count()
     
     stats = {
@@ -50,10 +48,6 @@ def approve_students():
             flash('Student verification not found.', 'danger')
             return redirect(url_for('hod.approve_students'))
         
-        if not verification.is_verified:
-            flash('Student email not verified yet.', 'warning')
-            return redirect(url_for('hod.approve_students'))
-        
         if verification.is_approved:
             flash('Student already approved.', 'info')
             return redirect(url_for('hod.approve_students'))
@@ -72,12 +66,15 @@ def approve_students():
             flash(f'Student {verification.user.username} rejected.', 'info')
     
     # Show pending verifications for HOD's department
-    pending = db.session.query(StudentVerification).join(User).filter(
-        StudentVerification.is_verified == True,
+    pending = db.session.query(StudentVerification).join(
+        User, StudentVerification.user_id == User.id
+    ).filter(
         StudentVerification.is_approved == False
     ).all()
     
-    approved = db.session.query(StudentVerification).join(User).filter(
+    approved = db.session.query(StudentVerification).join(
+        User, StudentVerification.user_id == User.id
+    ).filter(
         StudentVerification.is_approved == True
     ).order_by(StudentVerification.approved_at.desc()).limit(20).all()
     

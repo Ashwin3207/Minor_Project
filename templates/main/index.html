@@ -86,7 +86,7 @@
             <h3 class="mb-4">
                 {% if current_user.role == 'Student' %}
                     Ready to kickstart your career?
-                {% elif current_user.role == 'Admin' %}
+                {% elif current_user.role in ['Admin', 'TPO', 'HOD'] %}
                     Manage placements today
                 {% endif %}
             </h3>
@@ -96,7 +96,7 @@
                class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow">
                 <i class="bi bi-search me-2"></i> Explore Opportunities
             </a>
-            {% elif current_user.role == 'Admin' %}
+            {% elif current_user.role in ['Admin', 'TPO', 'HOD'] %}
             <a href="{{ url_for('admin.dashboard') }}" 
                class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow">
                 <i class="bi bi-speedometer2 me-2"></i> Go to Dashboard

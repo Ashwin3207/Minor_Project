@@ -229,3 +229,94 @@ footer {
         font-size: 2.2rem;
     }
 }
+
+/* =============================================
+   Page Transitions & Animations
+   ============================================= */
+
+/* Page Overlay for transition effects */
+.page-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+    pointer-events: none;
+    z-index: 9999;
+}
+
+/* Fade in animation for content */
+.fade-in-content {
+    opacity: 0;
+    animation: fadeInContent 0.4s ease-out 0.1s forwards;
+}
+
+@keyframes fadeInContent {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Smooth transitions for cards */
+.card {
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12) !important;
+}
+
+/* Button hover transitions */
+.btn {
+    transition: all 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+/* Table row hover with delay */
+table tbody tr {
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+table tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+/* Form input focus transitions */
+.form-control,
+.form-select {
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Alert animations */
+.alert {
+    animation: slideInDown 0.3s ease-out;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

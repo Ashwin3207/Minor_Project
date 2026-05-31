@@ -13,6 +13,8 @@ from app.models import User, StudentProfile, Opportunity, Application
 
 logger = logging.getLogger(__name__)
 
+ADMIN_PRIVILEGE_ROLES = {"admin", "tpo", "hod"}
+
 
 def _company_label(opp):
     if not opp:
@@ -139,17 +141,17 @@ class ChatbotEngine:
         if any(w in msg for w in ["ctc", "salary", "package", "pay", "stipend", "lpa", "compensation", "remuneration"]):
             return self._handle_ctc(msg, user_id)
         
-        # INDIVIDUAL STUDENT DETAILS (admin - for TPO to view specific student)
-        if any(w in msg for w in ["view student", "show student", "student details", "get student", "student info", "student profile", "individual student"]):
-            if not user_id:
-                return self._denied("Admin access required.")
-            return self._handle_individual_student_details(msg, user_id)
-        
-        # STUDENTS LIST (admin)
+        # STUDENTS LIST (admin-privileged)
         if any(w in msg for w in ["list students", "show students", "all students", "student list", "students info"]):
             if not user_id:
                 return self._denied("Admin access required.")
             return self._handle_students_list(msg, user_id)
+
+        # INDIVIDUAL STUDENT DETAILS (admin-privileged)
+        if any(w in msg for w in ["view student", "show student", "student details", "get student", "student info", "student profile", "individual student"]):
+            if not user_id:
+                return self._denied("Admin access required.")
+            return self._handle_individual_student_details(msg, user_id)
         
         # APPLICANTS LIST (admin)
         if any(w in msg for w in ["applicants", "list applicants", "who applied", "all applicants", "candidates"]):
@@ -158,7 +160,7 @@ class ChatbotEngine:
             return self._handle_applicants_list(msg, user_id)
         
         # ADMIN ANALYTICS (admin - filter by criteria)
-        if any(w in msg for w in ["filter students", "search students", "students by", "find students", "get students", "cgpa above", "branch-wise students", "no backlog", "backlog students", "top students", "high performers"]):
+        if any(w in msg for w in ["filter students", "search students", "students by", "find students", "get students", "cgpa above", "branch-wise students", "no backlog", "backlog students", "top students", "high performers"]) or ("top" in msg and "student" in msg):
             if not user_id:
                 return self._denied("Admin access required.")
             return self._handle_admin_analytics(msg, user_id)
@@ -552,11 +554,11 @@ class ChatbotEngine:
             return self._ok("Could not fetch salary information.", "ctc")
 
     def _handle_students_list(self, msg, user_id):
-        """Handle student list query (admin)."""
+        """Handle student list query for users with admin privileges."""
         try:
             user = User.query.get(user_id)
-            if not user or user.role.lower() != "admin":
-                return self._denied("Only admins can view student list.")
+            if not self._has_admin_privileges(user):
+                return self._denied("Admin, TPO, or HOD access required to view student list.")
             
             students = db.session.query(
                 User.username, User.email, StudentProfile.branch, StudentProfile.cgpa
@@ -575,11 +577,11 @@ class ChatbotEngine:
             return self._denied("Could not fetch student list.")
 
     def _handle_individual_student_details(self, msg, user_id):
-        """Handle individual student details query (admin/TPO)."""
+        """Handle individual student details query for users with admin privileges."""
         try:
             user = User.query.get(user_id)
-            if not user or user.role.lower() != "admin":
-                return self._denied("Only admins can view student details.")
+            if not self._has_admin_privileges(user):
+                return self._denied("Admin, TPO, or HOD access required to view student details.")
             
             # Extract student name/username from message
             # Handle patterns like "view student <name>", "show student <name>", etc.
@@ -667,11 +669,11 @@ class ChatbotEngine:
         return None
 
     def _handle_applicants_list(self, msg, user_id):
-        """Handle applicants list query (admin)."""
+        """Handle applicants list query for users with admin privileges."""
         try:
             user = User.query.get(user_id)
-            if not user or user.role.lower() != "admin":
-                return self._denied("Only admins can view applicants.")
+            if not self._has_admin_privileges(user):
+                return self._denied("Admin, TPO, or HOD access required to view applicants.")
             
             applicants = db.session.query(
                 User.username, Application.status, Opportunity.title
@@ -695,8 +697,8 @@ class ChatbotEngine:
         """Handle admin analytics and student filtering queries."""
         try:
             user = User.query.get(user_id)
-            if not user or user.role.lower() != "admin":
-                return self._denied("Only admins can access analytics.")
+            if not self._has_admin_privileges(user):
+                return self._denied("Admin, TPO, or HOD access required to access analytics.")
             
             msg_lower = msg.lower()
             
@@ -713,7 +715,7 @@ class ChatbotEngine:
                 return self._handle_backlog_filter(msg, user_id)
             
             # TOP PERFORMERS
-            if any(w in msg_lower for w in ["top student", "high performer", "best student", "topper"]):
+            if any(w in msg_lower for w in ["top student", "high performer", "best student", "topper"]) or ("top" in msg_lower and "student" in msg_lower):
                 return self._handle_top_performers(msg, user_id)
             
             # DEFAULT: Show overview
@@ -963,7 +965,7 @@ class ChatbotEngine:
         
         try:
             user = User.query.get(user_id)
-            if not user or user.role.lower() != "admin":
+            if not self._has_admin_privileges(user):
                 return None
             
             if any(w in msg for w in ["cgpa", "gpa"]) and any(w in msg for w in ["student", "show", "list", "filter"]):
@@ -997,6 +999,11 @@ class ChatbotEngine:
             return self._ok(f"Could not fetch students.", "student_search")
 
     @staticmethod
+    def _has_admin_privileges(user):
+        """Return True for roles that should have full admin-style access."""
+        return bool(user and user.role and user.role.lower() in ADMIN_PRIVILEGE_ROLES)
+
+    @staticmethod
     def _extract_threshold(msg):
         """Extract numeric threshold from message."""
         match = re.search(r"(\d+(?:\.\d+)?)", msg.lower())
@@ -1028,7 +1035,7 @@ class ChatbotEngine:
                 "• Placement statistics\n"
                 "• Branch-wise analytics\n"
                 "• Deadlines\n\n"
-                "👨‍💼 **Admin/TPO Commands** (admins only)\n"
+                "👨‍💼 **Admin/TPO/HOD Commands**\n"
                 "📌 **Student Details:**\n"
                 "• View student [name] - Get specific student details\n"
                 "• Show student profile [username]\n"

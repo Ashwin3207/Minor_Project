@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Student Details - TPC Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-1">Student Details</h1>
+            <p class="text-muted mb-0">{{ user.username }} - {{ user.email }}</p>
+        </div>
+        <a href="{{ url_for('admin.view_students') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Students
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card shadow border-0 h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Academic Profile</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">Branch</dt>
+                        <dd class="col-sm-7">{{ profile.branch or 'N/A' }}</dd>
+
+                        <dt class="col-sm-5">CGPA</dt>
+                        <dd class="col-sm-7">{{ profile.cgpa | round(2) if profile.cgpa is not none else 'N/A' }}</dd>
+
+                        <dt class="col-sm-5">10th Percentage</dt>
+                        <dd class="col-sm-7">{{ profile.tenth_percentage | round(2) if profile.tenth_percentage is not none else 'N/A' }}</dd>
+
+                        <dt class="col-sm-5">12th Percentage</dt>
+                        <dd class="col-sm-7">{{ profile.twelfth_percentage | round(2) if profile.twelfth_percentage is not none else 'N/A' }}</dd>
+
+                        <dt class="col-sm-5">Backlog</dt>
+                        <dd class="col-sm-7">
+                            {% if profile.has_backlog %}
+                                <span class="badge bg-danger">Yes</span>
+                            {% else %}
+                                <span class="badge bg-success">No</span>
+                            {% endif %}
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow border-0 h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Verification</h5>
+                </div>
+                <div class="card-body">
+                    {% if verification %}
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">Enrollment</dt>
+                        <dd class="col-sm-7">{{ verification.enrollment_number }}</dd>
+
+                        <dt class="col-sm-5">Department</dt>
+                        <dd class="col-sm-7">{{ verification.department or 'N/A' }}</dd>
+
+                        <dt class="col-sm-5">Semester</dt>
+                        <dd class="col-sm-7">{{ verification.semester or 'N/A' }}</dd>
+
+                        <dt class="col-sm-5">Status</dt>
+                        <dd class="col-sm-7">
+                            {% if verification.is_approved %}
+                                <span class="badge bg-success">Approved</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-5">Approved By</dt>
+                        <dd class="col-sm-7">{{ verification.approved_by.username if verification.approved_by else 'N/A' }}</dd>
+                    </dl>
+                    {% else %}
+                    <p class="text-muted mb-0">No verification record found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="card shadow border-0">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Professional Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <h6>Skills</h6>
+                            <p class="mb-0">{{ profile.skills or 'Not specified' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Internship Details</h6>
+                            <p class="mb-0">{{ profile.internship_details or 'Not specified' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>NPTEL Courses</h6>
+                            <p class="mb-0">{{ profile.nptel or 'Not specified' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Final Year Project</h6>
+                            <p class="mb-0">{{ profile.final_year_project or 'Not specified' }}</p>
+                        </div>
+                        <div class="col-12">
+                            <h6>Resume</h6>
+                            {% if profile.resume_link %}
+                                <a href="{{ profile.resume_link }}" target="_blank" class="btn btn-outline-primary">
+                                    <i class="bi bi-file-earmark-arrow-down me-2"></i>View Resume
+                                </a>
+                            {% else %}
+                                <p class="text-muted mb-0">No resume uploaded.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

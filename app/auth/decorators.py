@@ -5,6 +5,8 @@ from functools import wraps
 from flask import flash, redirect, url_for, session
 from app.models import User, CorporateProfile
 
+ADMIN_PRIVILEGE_ROLES = {'Admin', 'TPO', 'HOD'}
+
 
 def login_required(f):
     """Require user to be logged in."""
@@ -50,10 +52,10 @@ def student_required(f):
 
 
 def admin_required(f):
-    """Require user to be an Admin."""
+    """Require a user with full admin privileges."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'user_id' not in session or session.get('role') != 'Admin':
+        if 'user_id' not in session or session.get('role') not in ADMIN_PRIVILEGE_ROLES:
             flash('Admin access required.', 'danger')
             return redirect(url_for('auth.login'))
         return f(*args, **kwargs)
@@ -112,11 +114,11 @@ def corporate_required(f):
 
 
 def admin_or_tpo_required(f):
-    """Require user to be Admin or TPO."""
+    """Require user to be Admin, TPO, or HOD."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'user_id' not in session or session.get('role') not in ['Admin', 'TPO']:
-            flash('Admin or TPO access required.', 'danger')
+        if 'user_id' not in session or session.get('role') not in ADMIN_PRIVILEGE_ROLES:
+            flash('Admin, TPO, or HOD access required.', 'danger')
             return redirect(url_for('auth.login'))
         return f(*args, **kwargs)
     return decorated_function

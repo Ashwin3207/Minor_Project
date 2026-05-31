@@ -11,6 +11,7 @@ from sqlalchemy import and_, or_
 from app.models import User, StudentProfile, Opportunity, Application, Job
 from app.chatbot_security import (
     ALLOWED_INTENTS,
+    ADMIN_PRIVILEGE_ROLES,
     INTENT_PERMISSIONS,
     check_intent_permission,
     sanitize_intent_params,
@@ -256,9 +257,9 @@ class SecureIntentRouter:
         }
     
     def _handle_placement_stats(self, params: dict, user_id: int) -> Dict:
-        """Get placement statistics (admin only)."""
+        """Get placement statistics for admin-privileged roles."""
         user = User.query.get(user_id)
-        if not user or user.role.lower() != 'admin':
+        if not user or user.role.lower() not in ADMIN_PRIVILEGE_ROLES:
             return {'message': 'Admin access required', 'stats': {}}
         
         total_students = User.query.filter_by(role='Student').count()
@@ -292,9 +293,9 @@ class SecureIntentRouter:
         }
     
     def _handle_list_applicants(self, params: dict, user_id: int) -> Dict:
-        """List applicants for an opportunity (admin only)."""
+        """List applicants for an opportunity for admin-privileged roles."""
         user = User.query.get(user_id)
-        if not user or user.role.lower() != 'admin':
+        if not user or user.role.lower() not in ADMIN_PRIVILEGE_ROLES:
             return {'message': 'Admin access required', 'applicants': []}
         
         # Can filter by company or limit
@@ -325,9 +326,9 @@ class SecureIntentRouter:
         }
     
     def _handle_branch_analytics(self, params: dict, user_id: int) -> Dict:
-        """Get analytics by branch (admin only)."""
+        """Get analytics by branch for admin-privileged roles."""
         user = User.query.get(user_id)
-        if not user or user.role.lower() != 'admin':
+        if not user or user.role.lower() not in ADMIN_PRIVILEGE_ROLES:
             return {'message': 'Admin access required', 'analytics': {}}
         
         branch = params.get('branch', '').strip()

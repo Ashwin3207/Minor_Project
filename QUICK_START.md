@@ -4,12 +4,12 @@
 
 ### ✅ Signup Page (FIXED)
 - Updated form to show all required fields for students
-- Added college email validation (.edu/.ac.in only)
+- Added email verification for registration
 - Added enrollment number field
 - Added semester & department selection
 - Added password confirmation field
 - Clear workflow instructions displayed
-- Form validates college email domain
+- Form validates email format
 
 ### ✅ User Roles (WORKING)
 ```
@@ -79,7 +79,7 @@
 
 ### Student Verification Approval Flow (HOD/TPO)
 ```
-1. Student registers with college email
+1. Student registers with valid email
 2. Email verification sent
 3. Student verifies email
 4. HOD/TPO sees pending approval
@@ -98,8 +98,7 @@ URL: http://localhost:5000/auth/signup
 
 Form Fields (All Required):
 - Username: john_doe (3-50 chars, alphanumeric)
-- Personal Email: john@gmail.com
-- College Email: john@college.edu (must end with .edu or .ac.in)
+- Email: john@example.com
 - Enrollment Number: 2024001
 - Semester: Select 1-8
 - Department: Select from list
@@ -108,7 +107,7 @@ Form Fields (All Required):
 
 Expected:
 ✓ Form displays with all fields
-✓ College email domain validates
+✓ Email format validates
 ✓ Passwords match validation
 ✓ Account created
 ✓ Success message shown
@@ -308,7 +307,7 @@ ALLOWED_COLLEGE_DOMAINS = ['.edu', '.ac.in']
 **Solution**: Ensure both password fields are identical
 
 ### Issue: "Email already registered"
-**Solution**: Use different email for personal and college
+**Solution**: Use different email for registration
 
 ---
 
