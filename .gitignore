@@ -5,4 +5,42 @@ __pycache__/
 *.sqlite
 *.sqlite3
 .env
+.env.example
+.env.render
 .DS_Store
+
+# Test files
+test_*.py
+add_*.py
+check_*.py
+delete_user.py
+diagnose_chatbot.py
+setup_*.py
+verify_*.py
+fix_*.py
+final_chatbot_test.py
+quick_add_opps.py
+
+# Status and documentation files
+*_COMPLETE*.md
+*CHATBOT*.md
+*MISTRAL*.md
+*OLLAMA*.md
+*ASK*.md
+*INTEGRATION*.md
+*CHECKLIST*.md
+*DEPLOYMENT*.md
+*DEADLINE*.md
+*RENDER_*.md
+*SYSTEM_*.md
+*TECHNICAL*.md
+*ROLE*.md
+*README_*.md
+ONLINE_DATABASE_SUMMARY.md
+DATABASE_SETUP.md
+RESUME_FEATURE.md
+CHATBOT_CONFIG_REFERENCE.py
+MISTRAL_STATUS_REPORT.py
+
+# IDE
+.vscode/
