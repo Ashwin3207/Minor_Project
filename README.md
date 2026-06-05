@@ -273,7 +273,7 @@ This project is proprietary software for the Training & Placement Cell.
 ## Support
 
 For issues, features, or questions:
-- Email: tpc-admin@institution.edu
+- Email: amathura01@gmail.com
 - Internal Portal: [Admin Dashboard](http://localhost:5000/admin)
 
 ## Authors
